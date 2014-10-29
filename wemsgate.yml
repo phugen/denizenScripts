@@ -1,0 +1,170 @@
+# Das Script fuer Wemes' Anwesenstor.
+
+detectwemsgate:
+    type: world
+    events:
+        on player right clicks block in cuboid_wems_gate:
+            - if <server.has_flag[wemsgate_closed]> == false || <server.flag[wemsgate_closed]> == false {
+                - narrate "Schliesse Tor zu Wemsas Anwesen!"
+                - flag server wemsgate_closed:true
+                - ^run close_wemsgate
+            } else {
+                - narrate "Oeffne Tor zu Wemsas Anwesen!"
+                - flag server wemsgate_closed:false
+                - ^run open_wemsgate
+            }
+
+
+open_wemsgate:
+    type: task
+    script:
+        # Mittelposition
+        # zuerst alte Bloecke entfernen
+        - ^modifyblock <cu@1601,74,478,world|1610,77,478,world.get_blocks> m@air
+        - ^remove <cu@1606,75,477,world|1606,75,477,world.list_entities.get[1]>
+        
+        # dann neue Bloecke setzen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1601,74,478,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1602,74,477,world|1602,74,477,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1603,74,476,world|1603,74,476,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1604,74,475,world|1604,74,475,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1605,74,474,world|1605,74,474,world.get_blocks> m@iron_fence height:4
+        
+        # rechts
+        - ^modifyblock <cu@1610,74,478,world|1610,74,478,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1609,74,477,world|1609,74,477,world.get_blocks> m@iron_fence height:4 
+        - ^modifyblock <cu@1608,74,476,world|1608,74,476,world.get_blocks> m@iron_fence height:4
+        
+        # Wappen setzen
+        - ^modifyblock <cu@1605,75,474,world|1605,75,474,world.get_blocks> m@gold_block
+        
+        # frame direction hack
+        - ^modifyblock <cu@1605,75,475,world|1605,75,475,world.get_blocks> m@dirt
+        - ^modifyblock <cu@1606,75,474,world|1606,75,474,world.get_blocks> m@stone
+        - ^modifyblock <cu@1605,75,473,world|1605,75,473,world.get_blocks> m@stone
+        
+        - ^spawn 1605,75,474,world e@item_frame
+        - ^adjust <cu@1604,75,474,world|1604,75,474,world.list_entities.get[1]> framed:i@sapling
+        
+        - ^modifyblock <cu@1605,75,475,world|1605,75,475,world.get_blocks> m@air
+        - ^modifyblock <cu@1606,75,474,world|1606,75,474,world.get_blocks> m@air
+        - ^modifyblock <cu@1605,75,473,world|1605,75,473,world.get_blocks> m@air
+        
+        - ^playeffect 1601,75,473,world effect:DOOR_TOGGLE
+        
+        - wait 0.2s
+        
+        # Bloecke wieder entfernen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1601,74,478,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1602,74,477,world|1602,74,477,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1603,74,476,world|1603,74,476,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1604,74,475,world|1604,74,475,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1605,74,474,world|1605,74,474,world.get_blocks> m@air height:4
+        
+        # rechts
+        - ^modifyblock <cu@1610,74,478,world|1610,74,478,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1609,74,477,world|1609,74,477,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1608,74,476,world|1608,74,476,world.get_blocks> m@air height:4
+        
+        # Wappen despawnen
+        - ^remove <cu@1604,75,474,world|1604,75,474,world.list_entities.get[1]>
+        
+        # -------------------------------------------------------------------------------
+  
+        # dann neue setzen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1601,77,473,world.get_blocks> m@iron_fence
+        # rechts
+        - ^modifyblock <cu@1610,74,478,world|1610,77,475,world.get_blocks> m@iron_fence
+        
+        # und das goldene Schloss mit Wappen setzen
+        - ^modifyblock 1601,75,473,world m@gold_block
+
+        # spawne extra Bloecke, um item frame direction zu forcen...
+        - ^modifyblock <l@1602,75,473,world> m@stone
+        - ^modifyblock <l@1601,75,472,world> m@stone
+        
+        - ^spawn 1601,75,473,0.0,90.0,world e@item_frame
+        - ^adjust <cu@1600,75,473,world|1600,75,473,world.list_entities.get[1]> framed:i@sapling
+
+        # hilfsbloecke despawnen
+        - ^modifyblock <l@1602,75,473,world> m@air
+        - ^modifyblock <l@1601,75,472,world> m@air
+
+        # Soundeffekt
+        - ^playeffect 1601,75,473,world effect:DOOR_TOGGLE
+
+
+close_wemsgate:
+    type: task
+    script:
+        # Mittelposition
+        # zuerst alte Bloecke entfernen
+        - ^modifyblock <cu@1601,74,478,world|1601,78,473,world.get_blocks> m@air
+        - ^modifyblock <cu@1610,74,478,world|1610,78,475,world.get_blocks> m@air
+        - ^remove <cu@1600,75,473,world|1600,75,473,world.list_entities.get[1]>
+        
+        # dann neue Bloecke setzen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1601,74,478,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1602,74,477,world|1602,74,477,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1603,74,476,world|1603,74,476,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1604,74,475,world|1604,74,475,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1605,74,474,world|1605,74,474,world.get_blocks> m@iron_fence height:4
+        
+        # rechts
+        - ^modifyblock <cu@1610,74,478,world|1610,74,478,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1609,74,477,world|1609,74,477,world.get_blocks> m@iron_fence height:4
+        - ^modifyblock <cu@1608,74,476,world|1608,74,476,world.get_blocks> m@iron_fence height:4
+        
+        # Wappen setzen
+        # frame direction hack
+        - ^modifyblock <cu@1605,75,475,world|1605,75,475,world.get_blocks> m@stone
+        - ^modifyblock <cu@1606,75,474,world|1606,75,474,world.get_blocks> m@stone
+        - ^modifyblock <cu@1605,75,473,world|1605,75,473,world.get_blocks> m@stone
+        
+        - ^modifyblock <cu@1605,75,474,world|1605,75,474,world.get_blocks> m@gold_block
+        - ^spawn 1605,75,474,world e@item_frame
+        - ^adjust <cu@1604,75,474,world|1604,75,474,world.list_entities.get[1]> framed:i@sapling
+        
+        - ^modifyblock <cu@1605,75,475,world|1605,75,475,world.get_blocks> m@air
+        - ^modifyblock <cu@1606,75,474,world|1606,75,474,world.get_blocks> m@air
+        - ^modifyblock <cu@1605,75,473,world|1605,75,473,world.get_blocks> m@air
+        
+        - ^playeffect 1601,75,473,world effect:DOOR_TOGGLE
+        
+        - wait 0.2s
+        
+        # bloecke entfernen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1601,74,478,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1602,74,477,world|1602,74,477,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1603,74,476,world|1603,74,476,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1604,74,475,world|1604,74,475,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1605,74,474,world|1605,74,474,world.get_blocks> m@air height:4
+        
+        # rechts
+        - ^modifyblock <cu@1610,74,478,world|1610,74,478,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1609,74,477,world|1609,74,477,world.get_blocks> m@air height:4
+        - ^modifyblock <cu@1608,74,476,world|1608,74,476,world.get_blocks> m@air height:4
+        
+        # Wappen despawnen
+        - ^remove <cu@1604,75,474,world|1604,75,474,world.list_entities.get[1]>
+        
+        # -----------------------------------------------------------------------------
+        
+        # dann neue setzen
+        # links
+        - ^modifyblock <cu@1601,74,478,world|1606,77,478,world.get_blocks> m@iron_fence
+        # rechts
+        - ^modifyblock <cu@1607,74,478,world|1610,77,478,world.get_blocks> m@iron_fence
+        
+        # und das goldene Schloss mit Wappen setzen
+        - ^modifyblock 1606,75,478,world m@gold_block
+        - ^spawn 1606,75,478,0.0,180.0,world e@item_frame
+        - ^adjust <cu@1606,75,477,world|1606,75,477,world.list_entities.get[1]> framed:i@sapling
+
+        # Soundeffekt
+        - ^playeffect 1606,75,478,world effect:DOOR_TOGGLE
