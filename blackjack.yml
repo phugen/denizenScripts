@@ -1,0 +1,16 @@
+# The main script for the Black Jack game at the casino.
+# Makes use of blackjack_cards.yml, so check that, too.
+bj_main:
+    type: task
+    speed: 1t
+    script:
+        # Create a new card deck with 52 cards in it.
+        - define deck <proc[bj_create_deck]> 
+        #- run bj_show_deck def:<def[deck].escaped>
+
+        # Draw a random card from the deck, remove the card
+        # from the deck and store it in the "drawn" def.
+        - inject s@bj_choose_card
+        
+        - narrate "DRAWN<&co> %drawn%"
+        #- run bj_show_deck def:<def[deck].escaped>

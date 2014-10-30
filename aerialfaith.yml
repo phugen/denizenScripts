@@ -1,0 +1,7 @@
+boostme:
+    type: world
+    events:
+        on player steps on block in cuboid_aerialfaith1:
+            - push <player> origin:<l@player.location.x,player.location.y.add[1],player.location.z,world> destination:<l@1540,100,-65,world> speed:1.0
+        on player steps on block in cuboid_aerialfaith2:
+            - push <player> destination:<l@1510,80,-47,world> speed:0.5

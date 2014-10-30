@@ -1,0 +1,11 @@
+# Hebel des Schranklers
+
+schalterschranke:
+    type: world
+    events:
+        on player right clicks block in cuboid_schalter:
+            - ^narrate "<&a>Schrankler<&co><&f> Meeeein Schalter!!!!"
+            - ^switch location:1708,69,270,world
+            - ^hurt 8 <player>
+            - ^playeffect location:<player.location> effect:hurt
+            - ^push <player.entity> destination:<l@1707,71,267,world> speed:1.0

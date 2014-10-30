@@ -1,0 +1,52 @@
+Schrankler:
+    Type: Assignment
+    Interact Scripts:
+    - 1 Schranke
+Schranke:
+  Type: Interact
+  Requirements:
+    Mode: None
+  Steps:
+    1:
+      Click Trigger:
+        Script:
+        - ^animate <npc> arm_swing
+        - ^switch location:1708,69,270,world
+        - chat "Sie dürfen passieren, <player.name>."
+        - runtask SchrankeAuf instantly
+        - wait 5s
+        - ^animate <npc> arm_swing
+        - ^switch location:1708,69,270,world
+        - chat "Wieder zumachen den Laden"
+        - runtask SchrankeZu instantly
+        
+
+    2:
+      Click Trigger:
+        Script:
+        - switch location:1708,69,270,world
+        - chat "Und wieder zu"
+        - runtask SchrankeZu instantly
+        - zap step:1
+    cooldown: 10s
+SchrankeAuf:
+    type: task
+    speed: 5t
+    script:
+        - modifyblock location:1709,69,269,world material:air
+        - modifyblock location:1709,69,268,world material:air
+        - modifyblock location:1709,69,267,world material:air
+        - modifyblock location:1709,69,266,world material:air
+        - modifyblock location:1709,69,265,world material:air
+        - modifyblock location:1709,69,264,world material:air
+
+SchrankeZu:
+    type: task
+    speed: 5t
+    script:
+        - modifyblock location:1709,69,269,world material:171
+        - modifyblock location:1709,69,268,world material:171:14
+        - modifyblock location:1709,69,267,world material:171
+        - modifyblock location:1709,69,266,world material:171:14
+        - modifyblock location:1709,69,265,world material:171
+        - modifyblock location:1709,69,264,world material:171:14

@@ -4,15 +4,20 @@ detectwemsgate:
     type: world
     events:
         on player right clicks block in cuboid_wems_gate:
-            - if <server.has_flag[wemsgate_closed]> == false || <server.flag[wemsgate_closed]> == false {
-                - narrate "Schliesse Tor zu Wemsas Anwesen!"
-                - flag server wemsgate_closed:true
-                - ^run close_wemsgate
-            } else {
-                - narrate "Oeffne Tor zu Wemsas Anwesen!"
-                - flag server wemsgate_closed:false
-                - ^run open_wemsgate
-            }
+            - ^run wemsgatetoggle
+        on player right clicks block in cuboid_wems_gate2:
+            - ^run wemsgatetoggle
+
+wemsgatetoggle:
+    type: task
+    script:
+        - if <server.has_flag[wemsgate_closed]> == false || <server.flag[wemsgate_closed]> == false {
+            - flag server wemsgate_closed:true
+            - ^run close_wemsgate
+        } else {
+            - flag server wemsgate_closed:false
+            - ^run open_wemsgate
+        }
 
 
 open_wemsgate:

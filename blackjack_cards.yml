@@ -1,0 +1,91 @@
+# Definiert diverse Scripts, um die Karten fuer das Blackjack-Spiel
+# im Casino zu setzen. Siehe auch blackjack.yml.
+
+# Fuer dieses und alle anderen Scripts gilt, dass fuer die leichte Portierung
+# der Block EINEN UNTER UND EINEN VOR dem linken unteren Eckpunkt angegeben wird.
+# Setzt eine leere, weisse Karte.
+bj_create_base:
+    type: task
+    speed: 1t
+    definitions: loc
+    script:
+        - schematic load name:bj_base
+        - schematic paste name:bj_base <def[loc].as_location>
+        - schematic unload name:bj_base
+
+# Entfernt die aktuelle Karte komplett.
+bj_remove:
+    type: task
+    speed: 1t
+    definitions: loc
+    script:
+        - schematic load name:bj_remove
+        - schematic paste name:bj_remove <def[loc].as_location>
+        - schematic unload name:bj_remove
+
+# Stellt die Rueckseite einer Karte dar.
+bj_create_back:
+    type: task
+    speed: 1t
+    definitions: loc
+    script:
+        - schematic load name:bj_back
+        - schematic paste name:bj_black <def[loc].as_location>
+        - schematic unload name:bj_back
+
+# Stell die Karte mit dem Wert "val" dar an der Position "loc" mit der Farbe "color" dar.
+# Val kann 2 - 10, "jack", "queen", "king" oder "ace" sein.
+# Color kann "red" oder "black" sein.
+bj_create_card:
+    type: task
+    speed: 1t
+    definitions: loc|num|color
+    script:
+        - schematic load name:bj_%num%_%color%
+        - schematic paste name:bj_%num%_%color% <def[loc].as_location>
+        - schematic unload name:bj_%num%_%color%
+
+
+# Erstelle eine neue Kartenliste (ein neues Deck fuer ein neues Spiel).
+bj_create_deck:
+    type: procedure
+    speed: 1t
+    script:
+        # Pik (Schwarz)
+        - define deck <li@li@spades/2/black|li@li@spades/3/black|li@li@spades/4/black|li@li@spades/5/black|li@li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
+        # Herz (Rot)
+        - define deck <%deck%.include[li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red]>
+        # Karo (Rot)
+        - define deck <%deck%.include[li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red]>
+        # Kreuz (Schwarz)
+        - define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
+        
+        #- foreach %deck% {
+        #    - narrate targets:allahuakbar "%loop_index% %value%"
+        #}
+
+        - determine %deck%
+
+
+# Debugfunktion, die anzeigt, welche Karten noch in der Liste,
+# die das Kartendeck darstellt, sind.
+bj_show_deck:
+    type: task
+    speed: 1t
+    definitions: deck
+    script:
+        - foreach <def[deck].as_list.unescaped> {
+            - narrate "DECK<&co> %loop_index% %value%"
+        } 
+
+
+# Ziehe eine zufaellige Karte aus dem Deck. Dieses Script wird
+# durch "inject" lokal ausgefuehrt, sodass die ausgewaehlte Karte
+# auch direkt aus der Liste entfernt werden kann ("Pointer"-Verhalten
+# der Liste ist nicht sonst nicht gegeben).
+bj_choose_card:
+    type: task
+    speed: 1t
+    script:
+        - define drawn <%deck%.random>
+        - define deck <%deck%.remove[<%deck%.find[%drawn%]>]>

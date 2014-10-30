@@ -1,0 +1,64 @@
+# "assign" the lever to the castle door by checking whether
+# the the fired "player clicking block" event's location
+# corresponds to the location of the lever.
+detectNilsdoorLever:
+    type: world
+    events:
+        # check if the player right clicks the lever
+        on player right clicks block in cuboid_nilsdoor:
+            - run nilsdoor
+
+nilsdoor:
+  Type: task
+  script:
+  - if <server.has_flag[nilsdoor_closed]> && <server.flag[nilsdoor_closed]> == false {
+   # the door is open, close the door
+   - flag server nilsdoor_closed:true
+   - modifyblock 1519,88,543,world minecraft:iron_fence
+   - modifyblock 1520,88,543,world minecraft:iron_fence
+   - modifyblock 1521,88,543,world minecraft:iron_fence
+   - ^playeffect 1520,88,543,world effect:DOOR_TOGGLE
+   #
+   - wait 0.5s
+   - modifyblock 1519,87,543,world minecraft:iron_fence
+   - modifyblock 1520,87,543,world minecraft:iron_fence
+   - modifyblock 1521,87,543,world minecraft:iron_fence
+   - ^playeffect 1520,87,543,world effect:DOOR_TOGGLE
+   #
+   - wait 0.5s
+   - modifyblock 1519,86,543,world minecraft:iron_fence
+   - modifyblock 1520,86,543,world minecraft:iron_fence
+   - modifyblock 1521,86,543,world minecraft:iron_fence
+   - ^playeffect 1520,86,543,world effect:DOOR_TOGGLE
+   #
+   - wait 0.5s
+   - modifyblock 1519,85,543,world minecraft:iron_fence
+   - modifyblock 1520,85,543,world minecraft:iron_fence
+   - modifyblock 1521,85,543,world minecraft:iron_fence
+   - ^playeffect 1520,85,543,world effect:DOOR_TOGGLE
+   } else {
+    # The door is closed, open the door 
+    - flag server nilsdoor_closed:false
+    - modifyblock 1519,85,543,world minecraft:air
+    - modifyblock 1520,85,543,world minecraft:air
+    - modifyblock 1521,85,543,world minecraft:air
+    - ^playeffect 1520,85,543,world effect:DOOR_TOGGLE
+    #
+    - wait 0.5s
+    - modifyblock 1519,86,543,world minecraft:air
+    - modifyblock 1520,86,543,world minecraft:air
+    - modifyblock 1521,86,543,world minecraft:air
+    - ^playeffect 1520,86,543,world effect:DOOR_TOGGLE
+    #
+    - wait 0.5s
+    - modifyblock 1519,87,543,world minecraft:air
+    - modifyblock 1520,87,543,world minecraft:air
+    - modifyblock 1521,87,543,world minecraft:air
+    - ^playeffect 1520,87,543,world effect:DOOR_TOGGLE
+    #
+    - wait 0.5s
+    - modifyblock 1519,88,543,world minecraft:air
+    - modifyblock 1520,88,543,world minecraft:air
+    - modifyblock 1521,88,543,world minecraft:air
+    - ^playeffect 1520,88,543,world effect:DOOR_TOGGLE
+   }

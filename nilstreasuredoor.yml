@@ -1,0 +1,26 @@
+nilstreasuredoordetect:
+    type: world
+    events:
+        on player right clicks block in cuboid_nilstreasuredoor:
+            - if <player.name> == "lyzerGER" {
+                - narrate "Zugang geweahrt."
+                - run nilstreasuredoor
+            } else {
+                - narrate "Zugang verwehrt."
+            }
+            
+
+nilstreasuredoor:
+    type: task
+    script:
+        - if <server.has_flag[nilstreasuredoor_closed]> == false || <server.flag[nilstreasuredoor_closed]> == false {
+            # aufmachen
+            - flag server nilstreasuredoor_closed:true
+            - ^modifyblock <cu@1524,71,537,world|1524,74,547,world.get_blocks> m@iron_fence
+            - ^playeffect <l@1524,71,537,world> effect:DOOR_TOGGLE
+        } else {
+            # zumachen
+            - flag server nilstreasuredoor_closed:false
+            - ^modifyblock <cu@1524,71,537,world|1524,74,547,world.get_blocks> m@air
+            - ^playeffect <l@1525,71,537,world> effect:DOOR_TOGGLE
+        }

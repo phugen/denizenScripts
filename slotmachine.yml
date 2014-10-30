@@ -1,0 +1,293 @@
+# Fuer den Schalter der Slotmachine.
+slotmachine_detect:
+    type: world
+    speed: 1t
+    events:
+        on player right clicks block in cuboid_slotmachine:
+            - if <server.has_flag[slotmachine_oncooldown]> == false || <server.flag[slotmachine_oncooldown]> == false {
+                - flag server slotmachine_oncooldown:true
+                - ^run slotmachine
+            } else {
+                # "prevent" switching animation
+                - ^switch 1461,66,250,world
+            }
+
+
+# Wuerfle ein zufaelliges Item fuer einen Slot einer Rolle.
+# Return: Ein zufaelliges i@item aus einer Liste.
+slotmachine_rollitem:
+    type: procedure
+    speed: 1t
+    script:
+        - define iconlist <li@i@apple|i@diamond|i@melon|i@gold_ingot|i@nether_stalk>
+        #- define iconlist <li@i@melon>
+        - determine <%iconlist%.unescaped.as_list.random>
+
+
+# Ordnungsfunktion fuer eine Liste der Entities (Frames, Slots) in einem Cuboid,
+# ordnet nach nach Y-Koordinate. Dies ist notwendig, weil die foreach-Funktion der normalen
+# Ordnung folgt, die Bukkit fuer Entities definiert, welche vermutlich auf ID
+# basiert, und somit die Reihenfolge der Slot-Updates durcheinander bringt.
+slotmachine_ordering:
+    type: procedure
+    speed: 1t
+    definitions: item1|item2
+    script:
+    - if <def[item1].location.y> < <def[item2].location.y> {
+        - determine -1
+
+    } else if <def[item1].location> == <def[item2].location.y> {
+        - determine 0
+
+    } else
+        - determine 1
+    }
+
+
+# Lasse eine Rolle der Slotmachine "rotieren".
+# Argumente: Der Cuboid der Rolle|Anzahl der Drehungen der Rolle vor Stopp
+slotmachine_roll:
+    type: task
+    speed: 1t
+    definitions: cuboid_roll|rolltimes
+    script:
+    # WICHTIG: Uebergebene Argumente mit def[name] entgegenehmen ...
+    # WICHTIG: Wenn man unescaped benutzt, wird das Objekt wieder ein String, also:
+    # .unescaped.as_cuboid benutzen!
+    # Weniger als 0.05s als delay geht nicht.
+
+    - ^define rolldelay 0.05
+    - ^define magicnumber <el@val[0.05].div[<def[rolltimes]>]>
+    - repeat <def[rolltimes]> {
+        - foreach <def[cuboid_roll].unescaped.as_cuboid.list_entities.sort[slotmachine_order]> {
+            - adjust %value% framed:<proc[slotmachine_rollitem]>
+        }
+
+        - playsound <l@1463,67,251,world> sound:CLICK
+        - wait <def[rolldelay].as_duration.in_ticks>T
+        - define rolldelay <def[rolldelay].add[%magicnumber%]> 
+    }
+    - ^playsound <l@1463,67,251,world> sound:ITEM_BREAK
+    
+    # Erhoehe Anzahl der fertigen Worker
+    - flag server num_finished:++
+
+    # pruefe, ob das Hauptscript aufgeweckt werden muss!
+    - if <server.flag[num_finished]> > 2 {
+        - queue queue:<server.flag[slotmachine_mainqueue_id]> resume 
+    }
+
+# Returned den Wert des uebergebenen Items.
+# Argument: Das Item.
+slotmachine_itemvalue:
+    type: procedure
+    definitions: chitem
+    script:
+        - if <def[chitem]> == <i@apple> {
+            - define value 10
+        } else if <def[chitem]> == <i@nether_stalk> {
+            - define value 20
+        } else if <def[chitem]> == <i@skull_item> {
+            - define value 30
+        } else if <def[chitem]> == <i@gold_ingot> {
+            - define value 40
+        } else {
+            - define value 50
+        }
+
+        - determine %value%
+        
+
+# Ueberpruefe, ob die uebergebenen Slot-Entities dasselbe Item enthalten.
+# Argumente: Die drei Slot-Entities, die ueberprueft werden sollen.
+# Return: true falls ja, false falls sein. Falls ein Match besteht, wird ausserdem
+# der Raw-Punktcounter je nach Wert des Items erhoeht.
+slotmachine_eq:
+    type: procedure
+    definitions: slot1|slot2|slot3
+    script:
+        - if <def[slot1].framed_item> == <def[slot2].framed_item> && <def[slot2].framed_item> == <def[slot3].framed_item> {
+            - flag server points_raw:<server.flag[points_raw].add[<proc[slotmachine_itemvalue].context[<def[slot1].framed_item>]>]>
+            - determine true
+        } else {
+            - determine false
+        } 
+
+# Ueberpruefe, ob die uebergebene horizontale oder vertikale Rolle ein Match zeigt.
+# Argumente: Der Cuboid der Rolle.
+# Return: 1 falls ein Match besteht, ansonsten 0.
+slotmachine_check:
+    type: procedure
+    definitions: cuboid_roll
+    script:
+        - define slots <def[cuboid_roll].unescaped.as_cuboid.list_entities>
+        - if <proc[slotmachine_eq].context[<def[slots].get[1]>|<def[slots].get[2]>|<def[slots].get[3]>]> {
+            - determine 1
+        } else {
+            - determine 0
+        }
+ 
+# Ueberpruefe, ob die Diagonale von unten links nach oben rechts matcht.
+# Return: 1 falls match, ansonsten 0.
+slotmachine_check_diagonal:
+    type: task
+    script:
+        - define slot1 <cu@1464,66,251,world|1464,66,251,world.list_entities.get[1]>
+        - define slot2 <cu@1463,67,251,world|1463,67,251,world.list_entities.get[1]>
+        - define slot3 <cu@1462,68,251,world|1462,68,251,world.list_entities.get[1]>
+
+        - if <proc[slotmachine_eq].context[<def[slot1]>|<def[slot2]>|<def[slot3]>]> {
+            - determine 1
+        } else {
+            - determine 0
+        }
+
+# Ueberpruefe, ob die Diagonale von links oben nach rechts unten ein Match enthaelt. 
+# Return: 1 falls Match, ansonsten 0.
+slotmachine_check_diagonal_mirrored:
+    type: task
+    script:
+        - define slot1 <cu@1462,66,251,world|1462,66,251,world.list_entities.get[1]>
+        - define slot2 <cu@1463,67,251,world|1463,67,251,world.list_entities.get[1]>
+        - define slot3 <cu@1464,68,251,world|1814,68,251,world.list_entities.get[1]>
+
+        - if <proc[slotmachine_eq].context[<def[slot1]>|<def[slot2]>|<def[slot3]>]> {
+            - determine 1
+        } else {
+            - determine 0
+        }
+
+
+# Spiele eine nervige Dudelmelodie.
+slotmachine_music:
+    type: task
+    speed: 1t
+    definitions: result
+    script:
+        - define loc <l@1463,67,251,world>
+        - if %result% == win {
+            - playsound location:%loc% sound:NOTE_PLING pitch:0.53
+            - playsound location:%loc% sound:NOTE_PLING pitch:1.05
+            - wait 0.1s
+            - playsound location:%loc% sound:NOTE_PLING pitch:1.4
+            - wait 0.1s
+            - playsound location:%loc% sound:NOTE_PLING pitch:0.8
+            - playsound location:%loc% sound:NOTE_PLING pitch:1.6
+        } else {
+            - playsound location:%loc% sound:NOTE_PIANO pitch:1.2
+            - wait 0.1s
+            - playsound location:%loc% sound:NOTE_PIANO pitch:1.05
+            - wait 0.3s
+            - playsound location:%loc% sound:NOTE_PIANO pitch:0.8
+        }
+
+
+# Das Hauptscript der Slotmachine.
+slotmachine:
+    type: task
+    speed: 1t
+    script:
+        # WICHTIG: Wenn man Cuboids oder andere Listen uebergibt, die | beinhalten,
+        # muss der String escaped werden, weil das Zeichen fuer Argumentrennung
+        # benutzt wird! Zwischen mehreren Argumenten duerfen keine Leerzeichen sein.
+        
+        # reset
+        - adjust <cu@1464,66,251,world|1462,68,251,world.list_entities> framed:<i@air>
+
+        # WICHTIG: ~ vor einem Script erzwingt ein umgekehrtes Shell-&-Verhalten.
+
+        # erste Rolle drehen
+        - run instantly slotmachine_roll def:<cu@1464,66,251,world|1464,68,251,world.escaped>|10
+        - wait 0.1s
+ 
+        # zweite Rolle drehen
+        - run instantly slotmachine_roll def:<cu@1463,66,251,world|1463,68,251,world.escaped>|12
+        - wait 0.1s        
+
+        # dritte Rolle drehen
+        - run instantly slotmachine_roll def:<cu@1462,66,251,world|1462,68,251,world.escaped>|15
+        
+        # sicher gehen, dass der Main-"Thread" solange pausiert bleibt, bis die drei Rollen stehen
+        # Diese Queue wird durch die slotmachine_roll scripts aufgeweckt, sobald alle abgelaufen sind.
+        
+        # setze Anzahl der fertigen Worker zurueck und lege die aktuelle Queue in einem Flag ab
+        # um sie in den Workern benutzen zu koennen
+        - flag server num_finished:0
+        - flag server slotmachine_mainqueue_id:<queue.id>
+        
+        # Pausiere diese Queue, bis sie aufgeweckt wird
+        - queue pause
+
+        # ... nachdem alle Worker fertig sind, geht es hier weiter:
+        # ueberpruefe Ergebnisse
+        
+        # Jedes Symbol hat einen Wert, und jede zusaetzliche Reihe dient als Multiplikator.
+        # Die Punkte fuer jedes Symbol ist in seinem Listeneintrag enthalten (/ als Separator).
+        - define num_matching 0
+        - flag server points_raw:0
+
+        # horizontale Matches
+        - define cu1 <cu@1464,66,251,world|1462,66,251,world.escaped>
+        - define cu2 <cu@1464,67,251,world|1462,67,251,world.escaped>
+        - define cu3 <cu@1464,68,251,world|1462,68,251,world.escaped>
+
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu1]>]>]>
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu2]>]>]>
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu3]>]>]>
+
+        # vertikale Matches
+        - define cu1 <cu@1464,66,251,world|1464,68,251,world.escaped>
+        - define cu2 <cu@1463,66,251,world|1463,68,251,world.escaped>
+        - define cu3 <cu@1462,66,251,world|1462,68,251,world.escaped>
+
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu1]>]>]>
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu2]>]>]>
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check].context[<def[cu3]>]>]>
+
+        # diagonale Matches
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check_diagonal]>]>
+        - define num_matching <def[num_matching].add[<proc[slotmachine_check_diagonal_mirrored]>]>
+
+        - narrate "Raw points<&co> <server.flag[points_raw]>, Multiplikator<&co> %num_matching%"
+        - define points <server.flag[points_raw].mul[%num_matching%]>
+        - narrate "Final points<&co> %points%"
+
+        # Erzeuge einen unsichtbaren NPC, um seinen Namen als Punkteanzeige zu nutzen (lol)
+        #- create player pointhologram <l@1813,64,508,world>
+        #- define holoname "Points<&co> <def[points].as_int>"
+        #- adjust <el@pointhologram.as_npc> custom_name:%holoname%
+        #- execute as_server "npc select pointhologram"
+        #- execute as_server "npc playerlist -a"
+        #- invisible <el@pointhologram.as_npc>
+        #- wait 1.5s   
+        #- execute as_server "npc playerlist -r"
+        #- remove <e@pointhologram>
+
+        - if %points% > 0 {
+            - run slotmachine_music def:win
+            - firework <l@1466,65,249,world> power:0 type:2 primary:red fade:blue flicker:1 trail:1
+            - wait 0.1s
+            - firework <l@1463,65,249,world> power:0 type:2 primary:blue fade:green flicker:1 trail:1
+            - wait 0.1s
+            - firework <l@1461,65,249,world> power:0 type:2 primary:green fade:orange flicker:1 trail:1
+            - wait 0.1s
+            - firework <l@1458,65,249,world> power:0 type:2 primary:orange fade:red flicker:1 trail:1
+            - repeat 20 {
+                - playsound <l@1461,67,250,world> sound:ITEM_PICKUP
+                - drop <i@apple> <l@1461,67,250,world> speed:<util.random.decimal.mul[10]>
+                - wait 0.1s
+            }
+        } else {
+            - run slotmachine_music def:lose
+        }
+
+        - wait 0.5s
+
+        # Resette die Slots.
+        - adjust <cu@1464,66,251,world|1462,68,251,world.list_entities> framed:<i@air>
+
+        # Resette den Hebel
+        - ^switch 1461,66,250,world
+
+        # Beende Cooldown
+        - flag server slotmachine_oncooldown:false
