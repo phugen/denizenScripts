@@ -52,17 +52,15 @@ bj_create_deck:
     speed: 1t
     script:
         # Pik (Schwarz)
-        - define deck <li@li@spades/2/black|li@li@spades/3/black|li@li@spades/4/black|li@li@spades/5/black|li@li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
+        #- define deck <li@li@spades/2/black|li@li@spades/3/black|li@li@spades/4/black|li@li@spades/5/black|li@li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
         # Herz (Rot)
-        - define deck <%deck%.include[li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red]>
+        #- define deck <%deck%.include[li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red]>
         # Karo (Rot)
-        - define deck <%deck%.include[li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red]>
+        #- define deck <%deck%.include[li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red]>
         # Kreuz (Schwarz)
-        - define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
-        
-        #- foreach %deck% {
-        #    - narrate targets:allahuakbar "%loop_index% %value%"
-        #}
+        #- define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
+        - define deck <li@li@clubs/ace/black>
+
 
         - determine %deck%
 
@@ -96,6 +94,7 @@ bj_getValue:
     definitions: card|cscore
     script:
         - define name <def[card].get_sub_items[2].get[1]>
+        - narrate "NAME<&co> %name%"
         
         # Normal cards have a value that is equal to their number ...
         - if %name% == 2 || %name% == 3 || %name% == 4 || %name% == 5 || %name% == 6 || %name% == 7 || %name% == 8 || %name% == 9 || %name% == 10 {
