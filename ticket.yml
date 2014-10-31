@@ -1,0 +1,12 @@
+ticket:
+    type: command
+    name: ticket
+    aliases:
+        - gm
+    description: Schreibt ein Ticket, dass spaeter von einem Admin gelesen werden kann, zum Beispiel eine Terraform-Anfrage.
+    usage: /ticket <&lt>text<&gt>
+    script:
+    allowed help:
+        - determine true
+    script:
+        - log "<context.player> am <util.date> um <util.date.time> <&co> <context.args.get[1]>" type:none file:logs/tickets.txt
