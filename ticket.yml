@@ -1,8 +1,6 @@
 ticket:
     type: command
     name: ticket
-    aliases:
-        - gm
     description: Schreibt ein Ticket, dass spaeter von einem Admin gelesen werden kann, zum Beispiel eine Terraform-Anfrage.
     usage: /ticket text
     script:
