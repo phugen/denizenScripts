@@ -93,13 +93,15 @@ bj_choose_card:
 bj_getValue:
     type: procedure
     speed: 1t
-    definitions: name|cscore
+    definitions: card|cscore
     script:
+        - define name <def[card].get_sub_items[2].get[1]>
+        
         # Normal cards have a value that is equal to their number ...
-        - if <def[name]> == 2 || <def[name]> == 3 || <def[name]> == 4 || <def[name]> == 5 || <def[name]> == 6 || <def[name]> == 7 || <def[name]> == 8 || <def[name]> == 9 || <def[name]> == 10{
-            - determine <def[name]>
+        - if %name% == 2 || %name% == 3 || %name% == 4 || %name% == 5 || %name% == 6 || %name% == 7 || %name% == 8 || %name% == 9 || %name% == 10{
+            - determine %name%
         # Face cards always have a value of 10.
-        } else if <def[name]> == jack || <def[name]> == queen || <def[name]> == king {
+        } else if %name% == jack || %name% == queen || %name% == king {
             - determine 10
         # Aces have a value of 1 or 11, depending on the player's choice. TODO!
         } else {
