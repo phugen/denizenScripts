@@ -98,19 +98,19 @@ bj_getValue:
         - define name <def[card].get_sub_items[2].get[1]>
         
         # Normal cards have a value that is equal to their number ...
-        - if %name% == 2 || %name% == 3 || %name% == 4 || %name% == 5 || %name% == 6 || %name% == 7 || %name% == 8 || %name% == 9 || %name% == 10{
+        - if %name% == 2 || %name% == 3 || %name% == 4 || %name% == 5 || %name% == 6 || %name% == 7 || %name% == 8 || %name% == 9 || %name% == 10 {
             - determine %name%
         # Face cards always have a value of 10.
         } else if %name% == jack || %name% == queen || %name% == king {
             - determine 10
         # Aces have a value of 1 or 11, depending on the player's choice. TODO!
-        } else {
+        } else if %name% == ace {
             # save queue id for restarting this script
             #- flag server bj_queue:<queue>
             
             # Script is currently choosing number aggressively:
             # if Score < 11, 11 is chosen.
-            if <def[cscore]> < 11 {
+            - if <def[cscore]> < 11 {
                 - determine 10
             } else {
                 - determine 1
