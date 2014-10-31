@@ -101,7 +101,7 @@ bj_getValue:
         - if <def[name]> == 2 || <def[name]> == 3 || <def[name]> == 4 || <def[name]> == 5 || <def[name]> == 6 || <def[name]> == 7 || <def[name]> == 8 || <def[name]> == 9 || <def[name]> == 10{
             - determine <def[name]>
         # Bildkarten hingegen immer einen Wert von 10.
-        } else if <def[name]> == "jack" || <def[name]> == "queen" || <def[name]> == "king" {
+        } else if <def[name]> == jack || <def[name]> == queen || <def[name]> == king {
             - determine 10
         # Bei einem Ass wird einem die Wahl zwischen 1 und 11 gelassen. TODO!
         } else {
@@ -140,7 +140,7 @@ bj_getName:
 
 # Convenience function. Extracts the card's symbol
 # and translates it to its German equivalent.
-bj_getColor:
+bj_getSymbol:
     type: procedure
     speed: 1t
     definitions: card
