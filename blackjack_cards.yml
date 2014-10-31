@@ -85,6 +85,7 @@ bj_choose_card:
     script:
         - define drawn <%deck%.random>
         - define deck <%deck%.remove[<%deck%.find[%drawn%]>]>
+        - narrate "chooseCard<&co> %drawn%"
         
         
 # Convenience function. Extracts the value of a card.
@@ -94,7 +95,7 @@ bj_getValue:
     definitions: card|cscore
     script:
         - define name <def[card].get_sub_items[2].get[1]>
-        - narrate "getValue<&co> %name%"
+        #- narrate "getValue<&co> %name%"
         
         # Normal cards have a value that is equal to their number ...
         - if %name% == 2 || %name% == 3 || %name% == 4 || %name% == 5 || %name% == 6 || %name% == 7 || %name% == 8 || %name% == 9 || %name% == 10 {
@@ -124,7 +125,7 @@ bj_getName:
     definitions: card
     script:
         - define cardval <def[card].get_sub_items[2].get[1]>
-        - narrate "getName<&co> %cardval%"
+        #- narrate "getName<&co> %cardval%"
         
         - if %cardval% == 1 || %cardval% == 2 || %cardval% == 3 || %cardval% == 4 || %cardval% == 5 || %cardval% == 6 || %cardval% == 7 || %cardval% == 8 || %cardval% == 9 || %cardval% == 10 {
             - determine %cardval%
@@ -146,7 +147,7 @@ bj_getSymbol:
     definitions: card
     script:
         - define cardcolor <def[card].get_sub_items[1].get[1]>
-        - narrate "getSymbol<&co> %cardcolor%"
+        #- narrate "getSymbol<&co> %cardcolor%"
         
         - if %cardcolor% == diamonds {
             - determine Karo-
