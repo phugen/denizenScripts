@@ -22,7 +22,7 @@ bj_main:
         - inject s@bj_choose_card
         - define hole_card %drawn%
         
-        - narrate "Dealer's hole card was: <proc[bj_getSymbol].context[<def[drawn]>]><proc[bj_getName].context[<def[drawn]>]> (<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>)"
+        - narrate "Dealer's hole card was: <proc[bj_getSymbol].context[<def[drawn]>]><proc[bj_getName].context[<def[drawn]>]>, Value<&co> <proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>"
         
         - define score_dealer <def[score_dealer].add[<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>]>
         - run bj_create_card def:<l@1403,61,246,world>|<def[drawn].get_sub_items[2].get[1]>|<def[drawn].get_sub_items[3].get[1]>
