@@ -1,0 +1,29 @@
+     
+# The main script for the Black Jack game at the casino.
+# Makes use of blackjack_cards.yml, so check that, too.
+bj_main:
+    type: task
+    speed: 1t
+    script:
+        # Store the current player.
+        - flag server bj_player:<player>
+        
+        # Create a new card deck with 52 cards in it.
+        - define deck <proc[bj_create_deck]>
+        
+        # Set the player's and the dealer's score to zero.
+        - define score_player 0
+        - define score_dealer 0
+        
+        # Make the dealer draw two cards: A hole card (hidden)
+        # and an open first card. The define "drawn" is defined
+        # in the injected script and contains the card that was
+        # randomly chosen.
+        - inject s@bj_choose_card
+        - define hole_card %drawn%
+        
+        - narrate "Dealer's hole card was: <proc[bj_getSymbol].context[<def[drawn]>]><proc[bj_getName].context[<def[drawn]>]> (<proc[bj_getValue].context[<def[drawn]>]>|<def[score_dealer]>]>)"
+        
+        - define score_dealer <def[score_dealer].add[<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>]>
+        - run bj_create_card def:<l@1403,61,246,world>|<def[drawn].get_sub_items[2].get[1]>|<def[drawn].get_sub_items[3].get[1]>
+       
