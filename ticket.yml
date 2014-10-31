@@ -9,5 +9,5 @@ ticket:
     allowed help:
         - determine true
     script:
-        - log "<context.player> am <util.date> um <util.date.time> <&co> <context.args.get[1]>" type:none file:logs/tickets.txt
+        - log "<player.name> am <util.date> um <util.date.time> <&co> <context.args>" type:none file:logs/tickets.txt
         - narrate "Dein Ticket wurde erfolgreich abgeschickt!"
