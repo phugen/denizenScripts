@@ -25,7 +25,7 @@ bj_main:
         - narrate "<proc[bj_getSymbol].context[<def[drawn]>]>"
         - narrate "<proc[bj_getName].context[<def[drawn]>]>"
         - narrate "<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>"
-        - narrate "Dealer's hole card was: ""
+        - narrate "Dealer's hole card was<&co> "
         
         - define score_dealer <def[score_dealer].add[<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>]>
         - run bj_create_card def:<l@1403,61,246,world>|<def[drawn].get_sub_items[2].get[1]>|<def[drawn].get_sub_items[3].get[1]>

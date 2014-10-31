@@ -1,9 +1,9 @@
-# Definiert diverse Scripts, um die Karten fuer das Blackjack-Spiel
-# im Casino zu setzen. Siehe auch blackjack.yml.
+# Defines various scripts for the Blackjack game
+# at the casino. See also blackjack.yml.
+# For all scripts requiring a location parameter the following is true:
+# The location is one block in front of and one block below the lower left corner of the card.
 
-# Fuer dieses und alle anderen Scripts gilt, dass fuer die leichte Portierung
-# der Block EINEN UNTER UND EINEN VOR dem linken unteren Eckpunkt angegeben wird.
-# Setzt eine leere, weisse Karte.
+# Set an empty, white card.
 bj_create_base:
     type: task
     speed: 1t
@@ -13,7 +13,7 @@ bj_create_base:
         - schematic paste name:bj_base <def[loc].as_location>
         - schematic unload name:bj_base
 
-# Entfernt die aktuelle Karte komplett.
+# Delete the current card.
 bj_remove:
     type: task
     speed: 1t
@@ -23,7 +23,7 @@ bj_remove:
         - schematic paste name:bj_remove <def[loc].as_location>
         - schematic unload name:bj_remove
 
-# Stellt die Rueckseite einer Karte dar.
+# Draw the backside of a card.
 bj_create_back:
     type: task
     speed: 1t
@@ -33,9 +33,9 @@ bj_create_back:
         - schematic paste name:bj_black <def[loc].as_location>
         - schematic unload name:bj_back
 
-# Stell die Karte mit dem Wert "val" dar an der Position "loc" mit der Farbe "color" dar.
-# Val kann 2 - 10, "jack", "queen", "king" oder "ace" sein.
-# Color kann "red" oder "black" sein.
+# Display the card with the value "val" and the color "color" at the position "loc".
+# "Val" can be 2 - 10, "jack", "queen", "king" or "ace".
+# Color can be "red" or "black".
 bj_create_card:
     type: task
     speed: 1t
@@ -46,7 +46,7 @@ bj_create_card:
         - schematic unload name:bj_%val%_%color%
 
 
-# Erstelle eine neue Kartenliste (ein neues Deck fuer ein neues Spiel).
+# Create a new list containing 52 cards (a normal deck).
 bj_create_deck:
     type: procedure
     speed: 1t
@@ -67,8 +67,7 @@ bj_create_deck:
         - determine %deck%
 
 
-# Debugfunktion, die anzeigt, welche Karten noch in der Liste,
-# die das Kartendeck darstellt, sind.
+# Debug function. Shows all cards in the passed deck.
 bj_show_deck:
     type: task
     speed: 1t
@@ -79,10 +78,9 @@ bj_show_deck:
         } 
 
 
-# Ziehe eine zufaellige Karte aus dem Deck. Dieses Script wird
-# durch "inject" lokal ausgefuehrt, sodass die ausgewaehlte Karte
-# auch direkt aus der Liste entfernt werden kann ("Pointer"-Verhalten
-# der Liste ist nicht sonst nicht gegeben).
+# Draw a random card from the deck. This script is injected into
+# the main blackjack script, so that the card can be removed from the
+# deck afterwards.
 bj_choose_card:
     type: task
     speed: 1t
@@ -97,19 +95,19 @@ bj_getValue:
     speed: 1t
     definitions: name|cscore
     script:
-        # Normale Zahlen haben den Wert ihres Zahlenwerts ...
+        # Normal cards have a value that is equal to their number ...
         - if <def[name]> == 2 || <def[name]> == 3 || <def[name]> == 4 || <def[name]> == 5 || <def[name]> == 6 || <def[name]> == 7 || <def[name]> == 8 || <def[name]> == 9 || <def[name]> == 10{
             - determine <def[name]>
-        # Bildkarten hingegen immer einen Wert von 10.
+        # Face cards always have a value of 10.
         } else if <def[name]> == jack || <def[name]> == queen || <def[name]> == king {
             - determine 10
-        # Bei einem Ass wird einem die Wahl zwischen 1 und 11 gelassen. TODO!
+        # Aces have a value of 1 or 11, depending on the player's choice. TODO!
         } else {
             # save queue id for restarting this script
             #- flag server bj_queue:<queue>
             
-            # Im Moment spielt das Script aggressiv, d.h.
-            # falls Score < 11, wird 11 gewaehlt.
+            # Script is currently choosing number aggressively:
+            # if Score < 11, 11 is chosen.
             if <def[cscore]> < 11 {
                 - determine 10
             } else {
