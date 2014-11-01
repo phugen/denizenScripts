@@ -19,7 +19,7 @@ bj_remove:
     speed: 1t
     definitions: cub
     script:
-        - modifyblock <def[cub].as_cuboid.get_blocks> <m@air>
+        - modifyblock <def[cub].unescaped.as_cuboid.get_blocks> <m@air>
 
 # Draw the backside of a card.
 bj_create_back:

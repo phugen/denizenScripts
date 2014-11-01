@@ -25,10 +25,10 @@ bj_main:
         
         - define score_dealer <def[score_dealer].add[<proc[bj_getValue].context[<def[drawn]>|<def[score_dealer]>]>]>
         - run bj_create_back def:<l@1403,61,246,world>|0
-        - run bj_remove def:<cu@1402,62,240,world&pipe1402,69,240,world>
+        - run bj_remove def:<cu@1402,62,240,world|1402,69,240,world.escaped>
         - wait 0.5s
         - run bj_create_back def:<l@1408,61,242,world>|270
-        - run bj_remove def:<cu@1409,61,242,world&pipe1402,69,243,world>
+        - run bj_remove def:<cu@1409,61,242,world|1402,69,243,world.escaped>
         - wait 0.5s
         - run bj_create_card def:<l@1403,61,246,world>|<def[drawn].get_sub_items[2].get[1]>|<def[drawn].get_sub_items[3].get[1]>
        
