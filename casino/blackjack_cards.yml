@@ -17,11 +17,9 @@ bj_create_base:
 bj_remove:
     type: task
     speed: 1t
-    definitions: loc
+    definitions: cub
     script:
-        - schematic load name:bj_remove
-        - schematic paste name:bj_remove <def[loc].as_location>
-        - schematic unload name:bj_remove
+        - modifyblock <def[cub].as_cuboid.get_blocks> <m@air>
 
 # Draw the backside of a card.
 bj_create_back:
