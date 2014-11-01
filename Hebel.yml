@@ -1,7 +1,0 @@
-Hebel:
-    Type: task
-    script:
-    - narrate Hello
-    - modifyblock location:1409,89,139,world material:1
-    - switch location:1412,90,141,world
-    - midi file:casino location:1409,89,139,world
