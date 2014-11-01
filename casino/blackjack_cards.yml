@@ -17,9 +17,9 @@ bj_create_base:
 bj_remove:
     type: task
     speed: 1t
-    definitions: cub
+    definitions: remcub
     script:
-        - modifyblock <def[cub].as_cuboid.get_blocks> <m@air>
+        - modifyblock <def[remcub].unescaped.as_cuboid.get_blocks> m@air
 
 # Draw the backside of a card.
 bj_create_back:
