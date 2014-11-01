@@ -62,7 +62,7 @@ bj_create_deck:
         #- define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
 
         # Pik (Schwarz)
-        - define deck <li@spades/2/black|spades/3/black|spades/4/black|spades/5/black|spades/6/black|spades/7/black|spades/8/black|spades/9/black|spades/10/black|spades/jack/black|spades/queen/black|spades/king/black|spades/ace/black>
+        - define deck <li@li@spades/2/black|li@spades/3/black|li@spades/4/black|li@spades/5/black|li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
         # Herz (Rot)
         - define deck <%deck%.include[li@hearts/2/red|hearts/3/red|hearts/4/red|hearts/5/red|hearts/6/red|hearts/7/red|hearts/8/red|hearts/9/red|hearts/10/red|hearts/jack/red|hearts/queen/red|hearts/king/red|hearts/ace/red]>
         # Karo (Rot)
