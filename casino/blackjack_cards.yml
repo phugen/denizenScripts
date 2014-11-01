@@ -27,10 +27,11 @@ bj_remove:
 bj_create_back:
     type: task
     speed: 1t
-    definitions: loc
+    definitions: loc|rotation
     script:
         - schematic load name:bj_back
-        - schematic paste name:bj_black <def[loc].as_location>
+        - schematic rotate name:bj_back angle:<def[rotation]>
+        - schematic paste name:bj_back <def[loc].as_location>
         - schematic unload name:bj_back
 
 # Display the card with the value "val" and the color "color" at the position "loc".
@@ -60,6 +61,7 @@ bj_create_deck:
         # Kreuz (Schwarz)
         #- define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
 
+        # find a better way to do this; the method above produces errors when querying the first element of the three last lists
         - define deck <li@li@spades/2/black|li@spades/3/black|li@spades/4/black|li@spades/5/black|li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black|li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red|li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red|li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black>
         - determine %deck%
 
