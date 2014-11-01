@@ -51,25 +51,14 @@ bj_create_deck:
     type: procedure
     speed: 1t
     script:
-        # todo: ueberfluessige li@ entfernen
-        # Pik (Schwarz)
-        #- define deck <li@li@spades/2/black|li@li@spades/3/black|li@li@spades/4/black|li@li@spades/5/black|li@li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
-        # Herz (Rot)
-        #- define deck <%deck%.include[li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red]>
-        # Karo (Rot)
-        #- define deck <%deck%.include[li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red]>
-        # Kreuz (Schwarz)
-        #- define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
-
         # Pik (Schwarz)
         - define deck <li@li@spades/2/black|li@spades/3/black|li@spades/4/black|li@spades/5/black|li@spades/6/black|li@spades/7/black|li@spades/8/black|li@spades/9/black|li@spades/10/black|li@spades/jack/black|li@spades/queen/black|li@spades/king/black|li@spades/ace/black>
         # Herz (Rot)
-        - define deck <%deck%.include[li@hearts/2/red|hearts/3/red|hearts/4/red|hearts/5/red|hearts/6/red|hearts/7/red|hearts/8/red|hearts/9/red|hearts/10/red|hearts/jack/red|hearts/queen/red|hearts/king/red|hearts/ace/red]>
+        - define deck <%deck%.include[li@hearts/2/red|li@hearts/3/red|li@hearts/4/red|li@hearts/5/red|li@hearts/6/red|li@hearts/7/red|li@hearts/8/red|li@hearts/9/red|li@hearts/10/red|li@hearts/jack/red|li@hearts/queen/red|li@hearts/king/red|li@hearts/ace/red]>
         # Karo (Rot)
-        - define deck <%deck%.include[li@diamonds/2/red|diamonds/3/red|diamonds/4/red|diamonds/5/red|diamonds/6/red|diamonds/7/red|diamonds/8/red|diamonds/9/red|diamonds/10/red|diamonds/jack/red|diamonds/queen/red|diamonds/king/red|diamonds/ace/red]>
+        - define deck <%deck%.include[li@diamonds/2/red|li@diamonds/3/red|li@diamonds/4/red|li@diamonds/5/red|li@diamonds/6/red|li@diamonds/7/red|li@diamonds/8/red|li@diamonds/9/red|li@diamonds/10/red|li@diamonds/jack/red|li@diamonds/queen/red|li@diamonds/king/red|li@diamonds/ace/red]>
         # Kreuz (Schwarz)
-        - define deck <%deck%.include[li@clubs/2/black|clubs/3/black|clubs/4/black|clubs/5/black|clubs/6/black|clubs/7/black|clubs/8/black|clubs/9/black|clubs/10/black|clubs/jack/black|clubs/queen/black|clubs/king/black|clubs/ace/black]>
-
+        - define deck <%deck%.include[li@clubs/2/black|li@clubs/3/black|li@clubs/4/black|li@clubs/5/black|li@clubs/6/black|li@clubs/7/black|li@clubs/8/black|li@clubs/9/black|li@clubs/10/black|li@clubs/jack/black|li@clubs/queen/black|li@clubs/king/black|li@clubs/ace/black]>
 
         - determine %deck%
 
