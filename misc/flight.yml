@@ -3,9 +3,8 @@ flight_permissions:
     events:
         # give each player essentials flight rights upon joining
         on player join:
-            - if <player.flag[flying]> == false {
-                - execute as_player "fly"
-            }
+            - execute as_player "fly"
+
 flight:
     type: world
     events:
@@ -21,7 +20,6 @@ flight:
                 - narrate "Du hast nicht genug Geld um zu fliegen!"
                 - determine cancelled
             } else {
-                - narrate "flying activated"
                 - run flight_calcs
             }
             
@@ -57,6 +55,4 @@ flight_calcs:
                 - flag player flying:false
             }
         }
-        
-        - narrate "Stopped flight"
             
