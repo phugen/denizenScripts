@@ -1,7 +1,6 @@
-flight_permissions:
+flight_givepermission:
     type: world
     events:
-        # give each player essentials flight rights upon joining
         on player join:
             - execute as_player "fly"
 
@@ -44,11 +43,12 @@ flight_calcs:
             }
             
             # change the price per block flown here
-            - define costs <def[euclidean_distance].mul[0.0001]>
+            - define costs <def[euclidean_distance].mul[0.0009]>
             
             # take money from player
             - take money qty:%costs%
             
+            - narrate "Distance was %euclidean_distance%, price was %costs%"
             # check if player stopped flying or force him to flying
             # if he has no money left.
             - if <player.is_flying> == false || <player.money> <= 0 {
