@@ -24,7 +24,7 @@ flight_calcs:
             
             # prevent huge costs if someone teleports to a remote location mid-flight
             # by capping the distance; no one can fly 50 blocks in a one second anyway
-            - if euclidean_distance > 50 {
+            - if %euclidean_distance% > 50 {
                 - define euclidean_distance 50
             }
             
