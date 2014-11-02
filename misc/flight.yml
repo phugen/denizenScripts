@@ -34,11 +34,11 @@ flight_calcs:
             # prevent huge costs if someone teleports to a remote location mid-flight
             # by capping the distance; no one can fly 30 blocks in a one second anyway
             - if %euclidean_distance% > 30 {
-                - define euclidean_distance 30
+                - define euclidean_distance 30.0
             }
             
             # change the price per block flown here
-            - define costs <def[euclidean_distance].mul[0.001]>
+            - define costs <def[euclidean_distance].mul[0.0001]>
             
             # take money from player
             - take money %costs%
