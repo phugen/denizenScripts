@@ -2,6 +2,13 @@ flight:
     type: world
     events:
         on player starts flying:
+            # disallow flying in the nether
+            - if <player.location.world.name> == nether {
+                - narrate "Im Nether ist das Fliegen deaktiviert!"
+                - determine cancelled
+            }
+            
+            # check if player has enough money
             - if <player.money> < 100 {
                 - narrate "Du hast nicht genug Geld um zu fliegen!"
                 - determine cancelled
@@ -15,6 +22,8 @@ flight_calcs:
     script:
         - flag player flying:true
         
+        # while player is flying, substract money in intervals
+        # based on the travelled distance
         - while <player.flag[flying]> == true {
             - flag player pos1:<player.location>
             - wait 1s
@@ -23,17 +32,13 @@ flight_calcs:
             - define euclidean_distance <player.flag[pos1].as_location.distance[<player.flag[pos2].as_location>]>
             
             # prevent huge costs if someone teleports to a remote location mid-flight
-            # by capping the distance; no one can fly 50 blocks in a one second anyway
-            - if %euclidean_distance% > 50 {
-                - define euclidean_distance 50
+            # by capping the distance; no one can fly 30 blocks in a one second anyway
+            - if %euclidean_distance% > 30 {
+                - define euclidean_distance 30
             }
             
-            - narrate "<player.flag[pos1]> TO <player.flag[pos2]>"
-            - narrate "Distance<&co> %euclidean_distance% blocks" 
-            
             # change the price per block flown here
-            - define costs <def[euclidean_distance].mul[1]>
-            - narrate "Price<&co> <&ds>%costs%"
+            - define costs <def[euclidean_distance].mul[0.001]>
             
             # check if player stopped flying or force him to flying
             # if he has no money left.
