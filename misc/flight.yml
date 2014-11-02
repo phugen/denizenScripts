@@ -20,13 +20,13 @@ flight_calcs:
             - wait 1s
             - flag player pos2:<player.location>
             
-            - define euclidean_distance <player.flag[pos1].distance[<player.flag[pos2]>]>
+            - define euclidean_distance <player.flag[pos1].as_location.distance[<player.flag[pos2].as_location>]>
             
             # prevent huge costs if someone teleports to a remote location mid-flight
             # by capping the distance; no one can fly 50 blocks in a one second anyway
-            #- if %euclidean_distance% > 50 {
-            #    - define euclidean_distance 50
-            #}
+            - if %euclidean_distance% > 50 {
+                - define euclidean_distance 50
+            }
             
             - narrate "<player.flag[pos1]> TO <player.flag[pos2]>"
             - narrate "Distance<&co> %euclidean_distance% blocks" 
