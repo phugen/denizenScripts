@@ -1,3 +1,12 @@
+flugrecht:
+    type: world
+    events:
+        on player join:
+            - narrate "debug1"
+            - if <player.flag[flying]> == false {
+                - execute as_player "fly"
+                - narrate "debug2"
+            }
 flight:
     type: world
     events:
