@@ -40,6 +40,9 @@ flight_calcs:
             # change the price per block flown here
             - define costs <def[euclidean_distance].mul[0.001]>
             
+            # take money from player
+            - take money %costs%
+            
             # check if player stopped flying or force him to flying
             # if he has no money left.
             - if <player.is_flying> == false || <player.money> <= 0 {
