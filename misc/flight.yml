@@ -1,0 +1,45 @@
+flight:
+    type: world
+    events:
+        on player starts flying:
+            - if <player.money> < 100 {
+                - narrate "Du hast nicht genug Geld um zu fliegen!"
+                - determine cancelled
+            } else {
+                - narrate "flying activated"
+                - run flight_calcs
+            }
+            
+flight_calcs:
+    type: task
+    script:
+        - flag player flying:true
+        
+        - while <player.flag[flying]> == true {
+            - flag player pos1:<player.location>
+            - wait 1s
+            - flag player pos2:<player.location>
+            
+            - define euclidean_distance <player.flag[pos1].distance[<player.flag[pos2]>]>
+            
+            # prevent huge costs if someone teleports to a remote location mid-flight
+            # by capping the distance; no one can fly 50 blocks in a one second anyway
+            - if euclidean_distance > 50 {
+                - define euclidean_distance 50
+            }
+            
+            - narrate "Distance<&co> %euclidean_distance% blocks" 
+            
+            # change the price per block flown here
+            - define costs <def[euclidean_distance].mul[1]>
+            - narrate "Price<&co> <&ds>%costs%"
+            
+            # check if player stopped flying or force him to flying
+            # if he has no money left.
+            - if <player.is_flying> == false || <player.money> <= 0{
+                - flag player flying:false
+            }
+        }
+        
+        - narrate "Stopped flight"
+            
