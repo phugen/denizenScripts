@@ -36,7 +36,7 @@ flight_calcs:
             
             # check if player stopped flying or force him to flying
             # if he has no money left.
-            - if <player.is_flying> == false || <player.money> <= 0{
+            - if <player.is_flying> == false || <player.money> <= 0 {
                 - flag player flying:false
             }
         }
