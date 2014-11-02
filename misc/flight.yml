@@ -3,7 +3,7 @@ flight:
     events:
         on player starts flying:
             # disallow flying in the nether
-            - if <player.location.world.name> == nether {
+            - if <player.location.world.name> == neuernether {
                 - narrate "Im Nether ist das Fliegen deaktiviert!"
                 - determine cancelled
             }
