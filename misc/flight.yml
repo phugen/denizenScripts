@@ -28,6 +28,7 @@ flight_calcs:
                 - define euclidean_distance 50
             }
             
+            - narrate "<player.flag[pos1]> TO <player.flag[pos2]>"
             - narrate "Distance<&co> %euclidean_distance% blocks" 
             
             # change the price per block flown here
