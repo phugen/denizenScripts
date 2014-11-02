@@ -1,11 +1,10 @@
-flugrecht:
+flight_permissions:
     type: world
     events:
+        # give each player essentials flight rights upon joining
         on player join:
-            - narrate "debug1"
             - if <player.flag[flying]> == false {
                 - execute as_player "fly"
-                - narrate "debug2"
             }
 flight:
     type: world
@@ -43,7 +42,6 @@ flight_calcs:
             # prevent huge costs if someone teleports to a remote location mid-flight
             # by capping the distance; no one can fly 30 blocks in a one second anyway
             - if %euclidean_distance% > 30 {
-                - narrate "redefined distance"
                 - define euclidean_distance 30.0
             }
             
@@ -51,9 +49,8 @@ flight_calcs:
             - define costs <def[euclidean_distance].mul[0.0001]>
             
             # take money from player
-            - take money %costs%
+            - take money qty:%costs%
             
-            - narrate "Distance was %euclidean_distance%, price was %costs%"
             # check if player stopped flying or force him to flying
             # if he has no money left.
             - if <player.is_flying> == false || <player.money> <= 0 {
