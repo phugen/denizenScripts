@@ -1,0 +1,32 @@
+'VIPNow':
+  type: world
+  events:  
+    on vip command:
+    - ^if <flag.p:VIPCooldown> run OnCooldown
+    else if <player.is_op> == true run VIP
+    else run NotJuri
+    - determine passively fulfilled
+'VIP':
+    type: task
+    script:
+    - ^flag VIPCooldown duration:5
+    - ^narrate "<&c><&l>Going to VIP area"
+    - inject 'script:TPEffect'
+    - ^random 2
+    - ^narrate "1"
+    - ^narrate "2"
+'NotJuri':
+    type: task
+    script:
+    - narrate "<&c>Du musst ein OP sein, und das bist du nicht!"
+ 
+'OnCooldown':
+    type: task
+    script:
+    - narrate "<&c>Your command is on cooldown!"
+
+'TPEffect':
+    type: task
+    script:
+    - ^playsound location:<player.location> sound:Breath volume:1 pitch:1
+    - ^cast blindness duration:2 power:1  

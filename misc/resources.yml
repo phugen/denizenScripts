@@ -1,0 +1,7 @@
+# Loads custom sounds and music for the server.
+load_resources:
+    type: world
+    events:
+        on player join:
+            - adjust <player> resource:http://ge.tt/5sNBiN32/v/0
+            - narrate "Nehmen sie an, <player.name>, nehmen sie an!"

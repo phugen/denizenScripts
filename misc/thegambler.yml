@@ -1,0 +1,117 @@
+'thegambler': 
+    type: Assignment 
+    actions: 
+        on assignment: 
+        - Trigger name:click toggle:true 
+    interact scripts: 
+    - intro 
+'intro': 
+    type: Interact 
+    steps: 
+        1: 
+            Click Trigger: 
+                Script: 
+                - RUNTASK "SCRIPT:gamblerflag" 
+'gamblerflag': 
+    type: task 
+    script: 
+    - if "<player.flag[greetgambler]>" == "true" 
+      RUNTASK "SCRIPT:checkfunds" 
+      else RUNTASK "SCRIPT:newgambler" 
+'newgambler': 
+    type: task 
+    script: 
+    - CHAT "Hello <player.name>, feeling lucky today?" 
+    - WAIT 2 
+    - CHAT "I am offering good odds on the CreeperBrawl Sweepstakes, just give me $100 and you could win a fortune." 
+    - WAIT 1 
+    - CHAT "Come back and see me if you are ready to take a chance." 
+    - FLAG greetgambler 
+    - EXECUTE AS_SERVER "denizen save" 
+    - EXECUTE AS_SERVER "citizen save" 
+    - FINISH 
+'checkfunds': 
+    type: task 
+    script: 
+    - if "<player.money>" > "100" 
+      runtask "SCRIPT:bet" 
+      else CHAT "YOU HAVE NOT GOT ENOUGH MONEY! GET OUT OF HERE YOU BUM!" 
+'bet': 
+    type: Task 
+    script: 
+    - EXECUTE AS_SERVER "eco take <player.name> 100" 
+    - CHAT "Your bet is now placed, and the result are coming in." 
+    - RUNTASK "SCRIPT:gamble" 
+'gamble': 
+    type: Task 
+    script: 
+    - RANDOM 10 
+    - RUNTASK "SCRIPT:creep1" 
+    - RUNTASK "SCRIPT:creep2" 
+    - RUNTASK "SCRIPT:creep3" 
+    - RUNTASK "SCRIPT:creep4" 
+    - RUNTASK "SCRIPT:creep5" 
+    - RUNTASK "SCRIPT:creep6" 
+    - RUNTASK "SCRIPT:creep7" 
+    - RUNTASK "SCRIPT:creep8" 
+    - RUNTASK "SCRIPT:creep9" 
+    - RUNTASK "SCRIPT:creep10" 
+    - FINISH 
+'creep1': 
+    type: Task 
+    script: 
+    - CHAT "&cEASY GREEN has won the bout with odds of 3 to 2." 
+    - CHAT "You Have won $150, Congratulations." 
+    - EXECUTE AS_SERVER "eco give <player.name> 150" 
+    - CHAT "Come and see me again, maybe you can double it." 
+'creep2': 
+    type: Task 
+    script: 
+    - CHAT "BEATDOWN has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 
+'creep3': 
+    type: Task 
+    script: 
+    - CHAT "DOWN ON YA DOSH has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 
+'creep4': 
+    type: Task 
+    script: 
+    - CHAT "MISERY MAKER has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 
+'creep5': 
+    type: Task 
+    script: 
+    - CHAT "LOSING LUCY has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 
+'creep6': 
+    type: Task 
+    script: 
+    - CHAT "&cSMACKDOWN has won the bout with odds of 2 to 1." 
+    - CHAT "You Have won $200, Congratulations." 
+    - EXECUTE AS_SERVER "eco give <player.name> 200" 
+    - CHAT "Come and see me again, maybe you can double it." 
+'creep7': 
+    type: Task 
+    script: 
+    - CHAT "&cSUPERCREEP has won the bout with odds of 3 to 2." 
+    - CHAT "You Have won $150, Congratulations." 
+    - EXECUTE AS_SERVER "eco give <player.name> 150" 
+    - CHAT "Come and see me again, maybe you can double it." 
+'creep8': 
+    type: Task 
+    script: 
+    - CHAT "&cBIGBANG has won the bout with odds of 3 to 1." 
+    - CHAT "You Have won $300, Congratulations." 
+    - EXECUTE AS_SERVER "eco give <player.name> 300" 
+    - CHAT "Come and see me again, maybe you can double it." 
+'creep9': 
+    type: Task 
+    script: 
+    - CHAT "FIZZLER has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 
+'creep10': 
+    type: Task 
+    script: 
+    - CHAT "THEDUD has lost the bout" 
+    - CHAT "You Have Lost $100, Better Luck Next Time." 

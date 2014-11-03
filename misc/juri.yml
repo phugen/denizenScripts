@@ -1,0 +1,15 @@
+'juri':
+  type: world
+  events:  
+    on juri command:
+    - ^if <player.name> == Juri run juriok
+    else run keinjuri
+    - determine passively fulfilled
+'juriok':
+    type: task
+    script:
+    - ^narrate "<&c><&l><player.name> <player.debug.log>"
+'keinjuri':
+    type: task
+    script:
+    - queue clear

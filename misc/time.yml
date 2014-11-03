@@ -1,0 +1,5 @@
+time:
+    type: world
+    events:
+        on time 5 in world:
+            execute as_server broadcast <context.time>

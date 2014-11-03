@@ -1,0 +1,9 @@
+fishing:
+    type: world
+    events:
+        on player fishes:
+            - narrate "lel"    
+            - narrate: "<context.hook> <context.state> <context.entity> <context.item>"
+        on player fishes while CAUGHT_FISH:
+            - narrate "lel2"    
+            - narrate: "<context.hook> <context.state> <context.entity> <context.item>"

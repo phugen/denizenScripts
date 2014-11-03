@@ -27,6 +27,11 @@ flight:
             } else {
                 - run flight_calcs
             }
+
+        # prevent long loops caused by someone leaving while flying
+        on player quits:
+            - flag player flying:false
+         
             
 flight_calcs:
     type: task
@@ -55,9 +60,9 @@ flight_calcs:
             - if <player.gamemode.id> == 0 {
                 - take money qty:%costs%
             }
-            
-            # check if player stopped flying or force him to flying
-            # if he has no money left.
+
+            # check if player stopped flying, went offline 
+            # or force him to flying if he has no money left.
             - if <player.is_flying> == false || <player.money> <= 0 {
                 - flag player flying:false
             }
