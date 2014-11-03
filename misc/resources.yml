@@ -4,13 +4,14 @@ load_resources:
     events:
         on player join:
             - wait 2t
-            - adjust <player> resource_pack:http://directlinkupload.com/up√loads/79.203.29.158/juriserver_Dx9USC.zi
+            - adjust <player> resource_pack:http://directlinkupload.com/uploads/79.203.29.158/juriserver_Dx9USC.zip
 
-
+            
+# Does random things depending on my mood
 kernig:
     type: command
     name: kernig
     description: "Kernige jeschischte"
-    usage: kernig
+    usage: /kernig
     script:
         - playsound <player> sound:hugi_percee_sommer
