@@ -3,5 +3,14 @@ load_resources:
     type: world
     events:
         on player join:
-            - adjust <player> resource:http://ge.tt/5sNBiN32/v/0
-            - narrate "Nehmen sie an, <player.name>, nehmen sie an!"
+            - wait 2t
+            - adjust <player> resource_pack:http://directlinkupload.com/up√loads/79.203.29.158/juriserver_Dx9USC.zi
+
+
+kernig:
+    type: command
+    name: kernig
+    description: "Kernige jeschischte"
+    usage: kernig
+    script:
+        - playsound <player> sound:hugi_percee_sommer
