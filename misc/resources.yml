@@ -3,6 +3,7 @@ load_resources:
     type: world
     events:
         on player join:
+            - narrate "Einfach mal /kernig eingeben :^)"
             - wait 2t
             - adjust <player> resource_pack:http://directlinkupload.com/uploads/79.203.29.158/juriserver_Dx9USC.zip
 
@@ -14,4 +15,4 @@ kernig:
     description: "Kernige jeschischte"
     usage: /kernig
     script:
-        - playsound <player> sound:hugi_percee_sommer
+        - playsound <player> sound:hugi_percee_sommer custom
