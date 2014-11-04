@@ -4,21 +4,34 @@ chrono:
     description: "In the land of time the no-faced man is king!"
     usage: /chrono
     script:
-        # Chrono sphere radius
+        # set chronosphere radius
         - define x1 <player.location.x.sub[10]>
         - define y1 <player.location.y.sub[10]>
         - define z1 <player.location.z.sub[10]>
+        - define world <player.location.world>
 
         - define x2 <player.location.x.add[10]>
         - define y2 <player.location.y.add[10]>
         - define z2 <player.location.z.add[10]>
- 
-        - define players_caught <cu@%x1%,%y1%,%z1%,world|%x2%,%y2%,%z2%,world.list_players>
+        
+        # check which players got touched by the sphere and freeze them
+        - define players_caught <cu@%x1%,%y1%,%z1%,%world%|%x2%,%y2%,%z2%,%world%.list_players>
         - foreach %players_caught% {
-            - cast <def[value]> effect:slow power:1000 duration:4.5
-            - playsound <player.location> sound:so_void1 custom
-            - playeffect <player.location> effect:portal offset:10 qty:100 visibility:100
-            - playeffect <player.location> effect:portal offset:7 qty:100 visibility:100
-            - playeffect <player.location> effect:portal offset:4 qty:100 visibility:100
-            - playeffect <player.location> effect:portal offset:1 qty:100 visibility:100
+            - cast <def[value]> effect:slow power:10000 duration:4.5
+            - playsound <def[value].location> sound:so_void1 custom
+        }
+        
+        
+        # Center of the chronosphere, currently casting player (needs to be mob location later)
+        - define origin <player.location>
+
+        # Create a spherical effect
+        - repeat {
+            - playeffect <l@%origin%.x,%origin%.y.add[10],%origin%.z,%origin%.world> effect:portal offset:0 qty:100 visibility:100
+            - playeffect <l@%origin%.x,%origin%.y.add[8],%origin%.z,%origin%.world> effect:portal offset:2 qty:100 visibility:100
+            - playeffect <l@%origin%.x,%origin%.y.add[6],%origin%.z,%origin%.world> effect:portal offset:4 qty:100 visibility:100
+            - playeffect <l@%origin%.x,%origin%.y.add[4],%origin%.z,%origin%.world> effect:portal offset:6 qty:100 visibility:100
+            - playeffect <l@%origin%.x,%origin%.y.add[2],%origin%.z,%origin%.world> effect:portal offset:8 qty:100 visibility:100
+            - playeffect <l@%origin%.x,%origin%.y,%origin%.z,%origin%.world> effect:portal offset:10 qty:100 visibility:100
+            - wait 2.25s
         }
