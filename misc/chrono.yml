@@ -1,0 +1,24 @@
+chrono:
+    type: command
+    name: chrono
+    description: "In the land of time the no-faced man is king!"
+    usage: /chrono
+    script:
+        # Chrono sphere radius
+        - define x1 <player.location.x.sub[10]>
+        - define y1 <player.location.y.sub[10]>
+        - define z1 <player.location.z.sub[10]>
+
+        - define x2 <player.location.x.add[10]>
+        - define y2 <player.location.y.add[10]>
+        - define z2 <player.location.z.add[10]>
+ 
+        - define players_caught <cu@%x1%,%y1%,%z1%,world|%x2%,%y2%,%z2%,world.list_players>
+        - foreach %players_caught% {
+            - cast <def[value]> effect:slow power:1000 duration:4.5
+            - playsound <player.location> sound:so_void1 custom
+            - playeffect <player.location> effect:portal offset:10 qty:100 visibility:100
+            - playeffect <player.location> effect:portal offset:7 qty:100 visibility:100
+            - playeffect <player.location> effect:portal offset:4 qty:100 visibility:100
+            - playeffect <player.location> effect:portal offset:1 qty:100 visibility:100
+        }

@@ -1,0 +1,29 @@
+playersounds:
+    type: world
+    events:
+        on player joins:
+           # Fuer Spieler auf dem Server
+           - playsound <player> sound:s_newplayer volume:1 custom
+
+           # Fuer den Spieler der joined
+           - playsound <player> sound:s_linkengaged volume:1 custom
+
+        on player quits:
+           # Fuer Spieler auf dem Server
+           - playsound <player> sound:s_playerleft volume:1 custom
+
+           # Fuer den Spieler der quitted
+           - playsound <player> sound:s_connectionterminated volume:1 custom
+
+        on player chats:
+           - playsound <player> sound:s_chatping volume:1 custom
+
+        on player kicked:
+           # Fuer Spieler auf dem Server
+           - playsound <player> sound:s_playerkicked volume:1 custom
+
+           # Fuer den Spieler der gekickt wird
+           - playsound <player> sound:s_youhavebeenkicked volume:1 custom
+
+        on player levels up:
+           - playsound <player> sound:s_levelup volume:1 custom
