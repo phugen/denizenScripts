@@ -1,0 +1,72 @@
+# This script is supposed to entrap a group of players in a cage of dynamic
+# size; The cage is so big that all players in a previously defined region
+# are trapped, plus some leeway (3 blocks).
+# Depending on the spread of the group, the cage can be very small or very
+# large. This forces players to spread, as mobs are then spawned in the cage,
+# e.g. creepers which are hard to fight at close range.
+
+
+sprison:
+    type: command
+    name: sprison
+    description: "der chat man"
+    usage: /sprison
+    script:
+        - run steel_prison
+
+steel_prison:
+    type: task
+    script:
+        # the maximum x/z area the cage will span
+        # needs to be 3 less blocks wide/long than the entire room to account for
+        # a maximum size cage, y coordinate doesn't really matter
+        - define maxarea <cu@1470,88,92,world|1438,100,116,world>
+        
+        # fetch the maximum and minimum x/z positions
+        # of all players and create a minimum bounding box
+        - foreach <%maxarea%.list_entities> {
+            # update minimum x position if this is the first iteration
+            # or the current player's x position is lower
+            - if %min_x% == null || <def[value].location.x> < %min_x% {
+                - define min_x <def[value].location.x>
+            }
+            
+            # update minimum z position
+            - if %min_z% == null || <def[value].location.z> < %min_z% {
+                - define min_z <def[value].location.z>
+            }
+            
+            # update maximum x position
+            - if %max_x% == null || <def[value].location.x> > %max_x% {
+                - define max_x <def[value].location.x>
+            }
+            
+            # update maximum z position
+            - if %max_z% == null || <def[value].location.z> < %max_z% {
+                - define max_z <def[value].location.z>
+            }
+        }
+        
+        # add some leeway for dealing with client lag
+        - define min_x <def[min_x].sub[3]>
+        - define min_z <def[min_z].sub[3]>
+        - define max_x <def[min_x].add[3]>
+        - define max_z <def[max_z].add[3]>
+        
+        - narrate "%min_x%,%min_z% TO %max_x%,%max_z%" 
+        
+        # construct cage
+        - modifyblock <cu@%min_x%,88,%min_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - modifyblock <cu@%min_x%,88,%min_z%,world|%max_x%,98,%min_z%,world.get_blocks> m@iron_fence
+        - modifyblock <cu@%max_x%,88,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - modifyblock <cu@%max_x%,88,%max_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - modifyblock <cu@%min_x%,98,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        
+        - wait 1.5s
+        
+        # destroy cage
+        - modifyblock <cu@%min_x%,88,%min_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@air
+        - modifyblock <cu@%min_x%,88,%min_z%,world|%max_x%,98,%min_z%,world.get_blocks> m@air
+        - modifyblock <cu@%max_x%,88,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@air
+        - modifyblock <cu@%max_x%,88,%max_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@air
+        - modifyblock <cu@%min_x%,98,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@air
