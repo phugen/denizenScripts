@@ -8,7 +8,7 @@ chrono:
         - define x1 <player.location.x.sub[10]>
         - define y1 <player.location.y.sub[10]>
         - define z1 <player.location.z.sub[10]>
-        - define world <player.location.world>
+        - define world <player.location.world.name>
 
         - define x2 <player.location.x.add[10]>
         - define y2 <player.location.y.add[10]>
@@ -17,8 +17,11 @@ chrono:
         # check which players got touched by the sphere and freeze them
         - define players_caught <cu@%x1%,%y1%,%z1%,%world%|%x2%,%y2%,%z2%,%world%.list_players>
         - foreach %players_caught% {
-            - cast <def[value]> effect:slow power:10000 duration:4.5
-            - playsound <def[value].location> sound:so_void1 custom
+            #- cast <def[value]> effect:slow power:10000 duration:4.5
+            - flag server %value%_original_speed:<def[value].walk_speed>
+            - adjust <def[value]> walk_speed:0.0
+            - playsound <def[value]> sound:so_void_land custom
+            - playsound <def[value]> sound:so_void_chronosphere custom
         }
         
         
@@ -26,12 +29,18 @@ chrono:
         - define origin <player.location>
 
         # Create a spherical effect
-        - repeat {
-            - playeffect <l@%origin%.x,%origin%.y.add[10],%origin%.z,%origin%.world> effect:portal offset:0 qty:100 visibility:100
-            - playeffect <l@%origin%.x,%origin%.y.add[8],%origin%.z,%origin%.world> effect:portal offset:2 qty:100 visibility:100
-            - playeffect <l@%origin%.x,%origin%.y.add[6],%origin%.z,%origin%.world> effect:portal offset:4 qty:100 visibility:100
-            - playeffect <l@%origin%.x,%origin%.y.add[4],%origin%.z,%origin%.world> effect:portal offset:6 qty:100 visibility:100
-            - playeffect <l@%origin%.x,%origin%.y.add[2],%origin%.z,%origin%.world> effect:portal offset:8 qty:100 visibility:100
-            - playeffect <l@%origin%.x,%origin%.y,%origin%.z,%origin%.world> effect:portal offset:10 qty:100 visibility:100
-            - wait 2.25s
+        - repeat 2 {
+            - playeffect <%origin%.x,%origin%.y.add[10],%origin%.z,%origin%.world> effect:DRIP_WATER offset:2 qty:1000 visibility:100
+            - playeffect <%origin%.x,%origin%.y.add[8],%origin%.z,%origin%.world> effect:DRIP_WATER offset:4 qty:1000 visibility:100
+            - playeffect <%origin%.x,%origin%.y.add[6],%origin%.z,%origin%.world> effect:DRIP_WATER offset:6 qty:1000 visibility:100
+            - playeffect <%origin%.x,%origin%.y.add[4],%origin%.z,%origin%.world> effect:DRIP_WATER offset:8 qty:1000 visibility:100
+            - playeffect <%origin%.x,%origin%.y.add[2],%origin%.z,%origin%.world> effect:DRIP_WATER offset:10 qty:1000 visibility:100
+            - playeffect <%origin%.x,%origin%.y,%origin%.z,%origin%.world> effect:DRIP_WATER offset:12 qty:1000 visibility:100
+            - wait 1.25s
+        }
+
+        - wait 0.5s
+
+        - foreach %players_caught% {
+            - adjust <def[value]> walk_speed:<server.flag[%value%_original_speed]>
         }

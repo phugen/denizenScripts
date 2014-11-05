@@ -7,5 +7,6 @@ ticket:
     allowed help:
         - determine true
     script:
-        - log "<player.name> on <util.date> at <util.date.time> at <player.location> <&co> <context.raw_args>" type:none file:logs/tickets.txt
+        - log "<player.name> on <util.date> at <util.date.time> at <player.location.simple> <&co> <context.raw_args>" type:none file:logs/tickets.txt
         - narrate "Dein Ticket wurde erfolgreich abgeschickt!"
+#<util.date.format[<format>]> sollte verwendet werden.

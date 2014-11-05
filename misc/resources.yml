@@ -4,7 +4,7 @@ load_resources:
     events:
         on player join:
             - wait 2t
-            - adjust <player> resource_pack:http://directlinkupload.com/uploads/79.203.29.158/juriserver2.zip
+            - adjust <player> resource_pack:https://dropbox.com/s/czuxjzs8uu4ssh1/juriserver2.zip?dl=1
 
             
 # Does random things depending on my mood
