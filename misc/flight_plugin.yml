@@ -3,8 +3,9 @@ flight_givepermission:
     events:
         # newly joined players need flight toggle permissions
         on player join:
-            - execute as_player "fly"
-        
+            - if <player.gamemode.id> == 0 {
+                - execute as_player "fly"
+            }
         # account for world changes
         on player changes gamemode to survival:
             - wait 1t
