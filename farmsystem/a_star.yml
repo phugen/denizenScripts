@@ -3,7 +3,7 @@
 # between a player and a fixed starting point in the enhanced farming world.
 a_star:
     type: procedure
-    definitions: start goal
+    definitions: start|goal
     speed: 1t
     script:
         # Nodes that already have been evaluated
