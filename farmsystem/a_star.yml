@@ -45,7 +45,7 @@ g_score:
     definitions: node
     speed: 1t
     script:
-        - define g_val <def[node].get_sub_items[2].get[1]>
+        - define g_val <def[node].get_sub_items[2]>
         - narrate "g_score was %g_val%"
         - determine %g_val%
 
@@ -56,7 +56,7 @@ f_score:
     definitions: node
     speed: 1t
     script:
-        - define f_val <def[node].get_sub_items[3].get[1]>
+        - define f_val <def[node].get_sub_items[3]>
         - narrate "f_score was %f_val%"
         - determine %f_val%
 
