@@ -46,7 +46,8 @@ g_score:
     speed: 1t
     script:
         - define g_val <def[node].get_sub_items[2].get[1]>
-        - determine g_val
+        - narrate "g_score was %g_val%"
+        - determine %g_val%
 
 
 # This helper script returns the f value (Estimated total cost until goal) of a node.
@@ -56,7 +57,8 @@ f_score:
     speed: 1t
     script:
         - define f_val <def[node].get_sub_items[3].get[1]>
-        - determine f_val
+        - narrate "f_score was %f_val%"
+        - determine %f_val%
 
         
 # This helper script finds the node with the lowest f value
@@ -78,4 +80,5 @@ min_f:
             }
         }
         
+        - narrate "min_f was %min_f%"
         - determine %min_f%
