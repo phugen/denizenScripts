@@ -8,21 +8,21 @@ a_star:
     script:
         # Nodes that already have been evaluated
         - define closedset <li@>
-        - narrate "closedset %closedset%"
+        - narrate "closedset <def[closedset]>"
         
         # Nodes waiting to be evaluated.
         - define openset <li@<def[start]>>
-        - narrate "openset %openset%"
+        - narrate "openset <def[openset]>"
         
         # The path to the goal, if it exists.
         - define came_from <li@>
-        - narrate "came_from %came_from%"
+        - narrate "came_from <def[came_from]>"
         
         # The cost from start along the best known path.
         - define g_start <el@0>
-        - narrate "g_start %g_start%"
+        - narrate "g_start <def[g_start]>"
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
         - define f_start <el@g_start.add[<def[start].distance[<def[goal]>]>
-        - narrate "f_start %f_start%"
+        - narrate "f_start <def[f_start]>"
