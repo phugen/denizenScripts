@@ -1,6 +1,7 @@
 # This script implements an A* algorithm for finding the shortest path between
 # two points. This will be used for figuring out the shortest railroad connection
 # between a player and a fixed starting point in the enhanced farming world.
+# Nodes are defined as lists: <l@x,y,z,world>/g_value/f_value
 a_star:
     type: procedure
     definitions: start|goal
@@ -11,21 +12,70 @@ a_star:
     
         # Nodes that already have been evaluated
         - define closedset <li@>
-        - narrate "closedset <def[closedset]>"
+        #- narrate "closedset <def[closedset]>"
         
         # Nodes waiting to be evaluated.
         - define openset <li@%start%>
-        - narrate "openset <def[openset]>"
+        #- narrate "openset <def[openset]>"
         
         # The path to the goal, if it exists.
         - define came_from <li@>
-        - narrate "came_from <def[came_from]>"
+        #- narrate "came_from <def[came_from]>"
         
         # The cost from start along the best known path.
         - define g_start <el@0>
-        - narrate "g_start <def[g_start]>"
+        #- narrate "g_start <def[g_start]>"
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
         - define f_start <def[g_start].add[<def[start].distance[<def[goal]>]>]>
-        - narrate "f_start <def[f_start]>"
+        #- narrate "f_start <def[f_start]>"
+        
+        # Continue algorithm as long as there nodes to expand
+        # in the open set
+        - while <def[openset].is_empty> == false {
+            - define current 
+        }
+
+
+
+# This helper script returns the g value (cost from start) of a node.
+g_score:
+    type: procedure
+    definitions: node
+    speed: 1t
+    script:
+        - define g_val <def[node].get_sub_items[2].get[1]>
+        - determine g_val
+
+
+# This helper script returns the f value (Estimated total cost until goal) of a node.
+f_score:
+    type: procedure
+    definitions: node
+    speed: 1t
+    script:
+        - define f_val <def[node].get_sub_items[3].get[1]>
+        - determine f_val
+
+        
+# This helper script finds the node with the lowest f value
+# in the open set and returns it.
+min_f:
+    type: procedure
+    definitions: openset
+    speed: 1t
+    script:
+        # set dummy value 
+        - define min_f 999999
+        
+        # iterate through all nodes in the open set
+        # and find the one with the lowest f value.
+        - foreach <def[openset]> {
+            - define currentval <proc[f_score].context[%value%]>
+            - if  %currentval% < %min_f% {
+                - define min_f %currentval%
+            }
+        }
+        
+        - determine %min_f%
