@@ -1,0 +1,28 @@
+# This script implements an A* algorithm for finding the shortest path between
+# two points. This will be used for figuring out the shortest railroad connection
+# between a player and a fixed starting point in the enhanced farming world.
+a_star:
+    type: procedure
+    definitions: start goal
+    speed: 1t
+    script:
+        # Nodes that already have been evaluated
+        - define closedset <li@>
+        - narrate "closedset %closedset%"
+        
+        # Nodes waiting to be evaluated.
+        - define openset <li@<def[start]>>
+        - narrate "openset %openset%"
+        
+        # The path to the goal, if it exists.
+        - define came_from <li@>
+        - narrate "came_from %came_from%"
+        
+        # The cost from start along the best known path.
+        - define g_start <el@0>
+        - narrate "g_start %g_start%"
+        
+        # Estimated total cost from start to goal through
+        # Heuristic function is the straight Euclidean distance.
+        - define f_start <el@g_start.add[<def[start].distance[<def[goal]>]>
+        - narrate "f_start %f_start%"
