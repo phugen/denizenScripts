@@ -6,6 +6,9 @@ a_star:
     definitions: start|goal
     speed: 1t
     script:
+        - narrate "start <def[start]>"
+        - narrate "goal <def[goal]>"
+    
         # Nodes that already have been evaluated
         - define closedset <li@>
         - narrate "closedset <def[closedset]>"
