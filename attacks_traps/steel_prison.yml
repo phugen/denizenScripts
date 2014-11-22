@@ -16,15 +16,17 @@ sprison:
 
 steel_prison:
     type: task
+    speed: 1t
     script:
         # the maximum x/z area the cage will span
         # needs to be 3 less blocks wide/long than the entire room to account for
         # a maximum size cage, y coordinate doesn't really matter
-        - define maxarea <cu@1470,88,92,world|1438,100,116,world>
+        - define maxarea <cu@1468,88,89,world|1427,100,109,world>
         
         # fetch the maximum and minimum x/z positions
         # of all players and create a minimum bounding box
         - foreach <%maxarea%.list_entities> {
+            - narrate <def[value].name>
             # update minimum x position if this is the first iteration
             # or the current player's x position is lower
             - if %min_x% == null || <def[value].location.x> < %min_x% {
@@ -42,7 +44,7 @@ steel_prison:
             }
             
             # update maximum z position
-            - if %max_z% == null || <def[value].location.z> < %max_z% {
+            - if %max_z% == null || <def[value].location.z> > %max_z% {
                 - define max_z <def[value].location.z>
             }
         }
@@ -50,23 +52,45 @@ steel_prison:
         # add some leeway for dealing with client lag
         - define min_x <def[min_x].sub[3]>
         - define min_z <def[min_z].sub[3]>
-        - define max_x <def[min_x].add[3]>
+        - define max_x <def[max_x].add[3]>
         - define max_z <def[max_z].add[3]>
         
         - narrate "%min_x%,%min_z% TO %max_x%,%max_z%" 
         
         # construct cage
         - modifyblock <cu@%min_x%,88,%min_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_extend
+
         - modifyblock <cu@%min_x%,88,%min_z%,world|%max_x%,98,%min_z%,world.get_blocks> m@iron_fence
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_extend
+
         - modifyblock <cu@%max_x%,88,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - playsound <l@%max_x%,88,%min_z%,world> sound:piston_extend
+
         - modifyblock <cu@%max_x%,88,%max_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - playsound <l@%max_x%,88,%max_z%,world> sound:piston_extend
+
         - modifyblock <cu@%min_x%,98,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@iron_fence
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_extend        
+
+        # Save queue to wake this script up after all monsters are killed
+        - flag server steel_prison_queue:<queue>
+
+        # stop script until monsters are dead
         
-        - wait 1.5s
-        
+
         # destroy cage
         - modifyblock <cu@%min_x%,88,%min_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@air
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_retract
+
         - modifyblock <cu@%min_x%,88,%min_z%,world|%max_x%,98,%min_z%,world.get_blocks> m@air
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_retract
+
         - modifyblock <cu@%max_x%,88,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@air
+        - playsound <l@%max_x%,88,%min_z%,world> sound:piston_retract
+
         - modifyblock <cu@%max_x%,88,%max_z%,world|%min_x%,98,%max_z%,world.get_blocks> m@air
+        - playsound <l@%max_x%,88,%max_z%,world> sound:piston_retract
+
         - modifyblock <cu@%min_x%,98,%min_z%,world|%max_x%,98,%max_z%,world.get_blocks> m@air
+        - playsound <l@%min_x%,88,%min_z%,world> sound:piston_retract
