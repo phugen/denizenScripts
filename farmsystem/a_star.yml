@@ -14,7 +14,7 @@ a_star:
         - narrate "closedset <def[closedset]>"
         
         # Nodes waiting to be evaluated.
-        - define openset <li@<def[start]>>
+        - define openset <li@%start%>
         - narrate "openset <def[openset]>"
         
         # The path to the goal, if it exists.
@@ -27,5 +27,5 @@ a_star:
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
-        - define f_start <el@g_start.add[<def[start].distance[<def[goal]>]>
+        - define f_start <def[g_start].add[<def[start].distance[<def[goal]>]>]>
         - narrate "f_start <def[f_start]>"
