@@ -69,9 +69,12 @@ find_neighbors:
     script:
         - narrate "node was <def[node]>"
         
+        # center location whose neighbors shall
+        # be found by this procedure
         - define loc <def[node].get[1]>
         - narrate "origin was <def[loc]>"
 
+        # output list of valid neighbors
         - define valid_neighbors <li@>
         
         # Start from top (y+1)
@@ -81,33 +84,44 @@ find_neighbors:
         - define z <def[loc].z.sub[1]>
         - define world <def[loc].world>
         
-        # if there was a valid neighbor, add it to the output list
-        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
+        - define n1 <l@%x%,%y%,%z%,%world%>
         
-        - if <def[neighbor]> != -1 {
-            - narrate "Adding neighbor <def[neighbor]>"
-            - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
-        }
-
         # Direction: z+1
         - define x <def[loc].x>
         - define y <def[loc].y.add[1]>
         - define z <def[loc].z.add[1]>
-
-        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
-
-        - if <def[neighbor]> != -1 {
-            - narrate "Adding neighbor <def[neighbor]>"
-            - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
-        }
-
+        
+        - define n2 <l@%x%,%y%,%z%,%world%>
+        
         # Direction: x-1
         - define x <def[loc].x.sub[1]>
         - define y <def[loc].y.add[1]>
-        - define z <def[loc].z]>
+        - define z <def[loc].z>
         
-        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
-
+        - define n3 <l@%x%,%y%,%z%,%world%>
+        
+        # Direction: x+1
+        - define x <def[loc].x.add[1]>
+        - define y <def[loc].y.add[1]>
+        - define z <def[loc].z>
+        
+        - define n4 <l@%x%,%y%,%z%,%world%>
+        
+        # Neighboring blocks to be checked
+        - define checklist <li@%n1%|%n2%|%n3%|%n4%>
+        
+        - foreach checklist {
+            - define neighbor <proc[check_rail_placeable].context[<def[value]>]>
+        
+            # if there was a valid neighbor, add it to the output list
+            - if <def[neighbor]> != -1 {
+                - narrate "Adding neighbor <def[neighbor]>"
+                - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+            }
+        }
+        
+        # return list of valid neighbors
+        - determine valid_neighbors
         
 # This helper script checks if a rail can be placed on the passed block or the two
 # below it, and returns a valid block location if there was any.
