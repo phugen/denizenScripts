@@ -71,14 +71,42 @@ find_neighbors:
         
         - define loc <def[node].get[1]>
         - narrate "origin was <def[loc]>"
+
+        - define valid_neighbors <li@>
         
+        # Start from top (y+1)
         # Direction: z-1
         - define x <def[loc].x>
         - define y <def[loc].y.add[1]>
         - define z <def[loc].z.sub[1]>
         - define world <def[loc].world>
         
-        - if <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]> {
+        # if there was a valid neighbor, add it to the output list
+        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
+        
+        - if <def[neighbor]> != -1 {
+            - narrate "Adding neighbor <def[neighbor]>"
+            - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+        }
+
+        # Direction: z+1
+        - define x <def[loc].x>
+        - define y <def[loc].y.add[1]>
+        - define z <def[loc].z.add[1]>
+
+        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
+
+        - if <def[neighbor]> != -1 {
+            - narrate "Adding neighbor <def[neighbor]>"
+            - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+        }
+
+        # Direction: x-1
+        - define x <def[loc].x.sub[1]>
+        - define y <def[loc].y.add[1]>
+        - define z <def[loc].z]>
+        
+        - define neighbor <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]>
 
         
 # This helper script checks if a rail can be placed on the passed block or the two
@@ -113,11 +141,8 @@ check_rail_placeable:
 
         # start at top block and go down a maximum
         # of two blocks from the origin loc
-        - while <def[status]> == continue && <def[loc].y.sub[<def[inloc].y>]> < 3 {
+        - while <def[status].is[EQUALS].to[continue]> && <def[loc].y.sub[<def[inloc].y>].is[LESS].than[3]> {
             - narrate "This is iteration %loop_index%"
-            - if %loop_index% > 500 {
-                - define status abort
-            }
 
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
