@@ -99,19 +99,26 @@ check_rail_placeable:
     script:
         # loop ending condition
         - define status continue
+        #- narrate "status was <def[status]>"
         
         # retain origin location by using
         # a new variable
         - define inloc <def[loc]>
+        - narrate "inloc was <def[inloc]>"
         
         # dummy output location for the case
         # that no block matches
         - define outloc -1
         
+
         # start at top block and go down a maximum
         # of two blocks from the origin loc
-        while <def[status]> == continue && <def[loc].y.sub[<def[inloc].y>]> < 3 {
-        
+        - while <def[status]> == continue && <def[loc].y.sub[<def[inloc].y>]> < 3 {
+            - narrate "This is iteration %loop_index%"
+            - if %loop_index% > 500 {
+                - define status abort
+            }
+
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
             - if <def[loc].material.is_solid> == true {
@@ -123,6 +130,7 @@ check_rail_placeable:
                     - if <def[loc].above.material> == <m@air> {
                     
                         # Rail is placeable!
+                        - narrate "solid, non-transparent, space above, ACCEPT"
                         - define status accept
                         - define outloc <def[inloc]>
                         
@@ -131,6 +139,7 @@ check_rail_placeable:
                     } else {
                     
                         # this blocks all potential neighbors below, abort
+                        - narrate "solid, non-transparent, no space above, ABORT"
                         - define status abort
                     }
                 
@@ -138,6 +147,7 @@ check_rail_placeable:
                 } else {
                     
                     # this blocks all potential neighbors below, abort
+                    - narrate "solid, transparent, ABORT"
                     - define status abort
                 }
             
@@ -148,21 +158,31 @@ check_rail_placeable:
                 - if <def[loc].material> == <m@air> {
                 
                     # continue with block below
+                    - narrate "non-solid, air, CONTINUE LOWER"
                     - define status continue
-                    - define inloc <l@<def[inloc].x>,<def[inloc].y.sub[1]>,<def[inloc].z>,<def[inloc].world>>
+
+                    - define in_x <def[inloc].x>
+                    - define in_y <def[inloc].y.sub[1]>
+                    - define in_z <def[inloc].z>
+                    - define in_world <def[inloc].world.name>
+
+                    - define inloc <l@%in_x%,%in_y%,%in_z%,%in_world%>
+                    - narrate "inloc is now <def[inloc]>"
                 
                 # else, there's water or lava, which means that the
                 # block below is either solid or also water/lava
                 } else {
                 
                     # hence abort search
+                    - narrate "non-solid, non-air, ABORT"
                     - define status abort
                 }
             }
-            - narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"
-            - determine <def[outloc]>
+            - narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"    
         }
         
+        # finally return the valid neighbor block or -1, if there was none
+        - determine <def[outloc]>
         
 # This helper script returns the g value (cost from start) of a node.
 g_score:
