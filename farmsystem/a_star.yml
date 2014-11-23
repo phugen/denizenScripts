@@ -50,7 +50,7 @@ a_star:
             - define closedset <def[closedset].include[<def[current]>]>
             
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[<def[current].get_sub_items[1]>]>
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].get_sub_items[1]>]>
             
             
             - foreach 
@@ -71,8 +71,8 @@ find_neighbors:
         
         # center location whose neighbors shall
         # be found by this procedure
-        - define loc <def[node].get[1]>
-        - narrate "origin was <def[loc]>"
+        - define loc <def[node].get[1].as_location>
+        #- narrate "origin was <def[loc]>"
 
         # output list of valid neighbors
         - define valid_neighbors <li@>
@@ -82,7 +82,7 @@ find_neighbors:
         - define x <def[loc].x>
         - define y <def[loc].y.add[1]>
         - define z <def[loc].z.sub[1]>
-        - define world <def[loc].world>
+        - define world <def[loc].world.name>
         
         - define n1 <l@%x%,%y%,%z%,%world%>
         
@@ -109,19 +109,21 @@ find_neighbors:
         
         # Neighboring blocks to be checked
         - define checklist <li@%n1%|%n2%|%n3%|%n4%>
+        #- narrate "checklist <def[checklist]>"
         
-        - foreach checklist {
+        - foreach <def[checklist]> {
             - define neighbor <proc[check_rail_placeable].context[<def[value]>]>
-        
+            #- narrate "checklist neighbor was <def[neighbor]>" 
+       
             # if there was a valid neighbor, add it to the output list
             - if <def[neighbor]> != -1 {
-                - narrate "Adding neighbor <def[neighbor]>"
+                #- narrate "Adding neighbor <def[neighbor]>"
                 - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
             }
         }
         
         # return list of valid neighbors
-        - determine valid_neighbors
+        - determine <def[valid_neighbors]>
         
 # This helper script checks if a rail can be placed on the passed block or the two
 # below it, and returns a valid block location if there was any.
@@ -146,7 +148,7 @@ check_rail_placeable:
         # retain origin location by using
         # a new variable
         - define inloc <def[loc]>
-        - narrate "inloc was <def[inloc]>"
+        #- narrate "inloc was <def[inloc]>"
         
         # dummy output location for the case
         # that no block matches
@@ -156,7 +158,7 @@ check_rail_placeable:
         # start at top block and go down a maximum
         # of two blocks from the origin loc
         - while <def[status].is[EQUALS].to[continue]> && <def[loc].y.sub[<def[inloc].y>].is[LESS].than[3]> {
-            - narrate "This is iteration %loop_index%"
+            #- narrate "This is iteration %loop_index%"
 
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
@@ -169,7 +171,7 @@ check_rail_placeable:
                     - if <def[inloc].above.material> == <m@air> {
                     
                         # Rail is placeable!
-                        - narrate "solid, non-transparent, space above, ACCEPT"
+                        #- narrate "solid, non-transparent, space above, ACCEPT"
                         - define status abort
                         - define outloc <def[inloc]>
                         
@@ -178,7 +180,7 @@ check_rail_placeable:
                     } else {
                     
                         # this blocks all potential neighbors below, abort
-                        - narrate "solid, non-transparent, no space above, ABORT"
+                        #- narrate "solid, non-transparent, no space above, ABORT"
                         - define status abort
                     }
                 
@@ -186,7 +188,7 @@ check_rail_placeable:
                 } else {
                     
                     # this blocks all potential neighbors below, abort
-                    - narrate "solid, transparent, ABORT"
+                    #- narrate "solid, transparent, ABORT"
                     - define status abort
                 }
             
@@ -197,7 +199,7 @@ check_rail_placeable:
                 - if <def[inloc].material> == <m@air> {
                 
                     # continue with block below
-                    - narrate "non-solid, air, CONTINUE LOWER"
+                    #- narrate "non-solid, air, CONTINUE LOWER"
                     - define status continue
 
                     - define in_x <def[inloc].x>
@@ -206,22 +208,22 @@ check_rail_placeable:
                     - define in_world <def[inloc].world.name>
 
                     - define inloc <l@%in_x%,%in_y%,%in_z%,%in_world%>
-                    - narrate "inloc is now <def[inloc]>"
+                    #- narrate "inloc is now <def[inloc]>"
                 
                 # else, there's water or lava, which means that the
                 # block below is either solid or also water/lava
                 } else {
                 
                     # hence abort search
-                    - narrate "non-solid, non-air, ABORT"
+                    #- narrate "non-solid, non-air, ABORT"
                     - define status abort
                 }
             }
-            - narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"    
+            #- narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"    
         }
         
         # finally return the valid neighbor block or -1, if there was none
-        - narrate "returning..."
+        #- narrate "returning..."
         - determine <def[outloc]>
         
 # This helper script returns the g value (cost from start) of a node.
