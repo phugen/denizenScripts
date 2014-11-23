@@ -1,7 +1,7 @@
 # This script implements an A* algorithm for finding the shortest path between
 # two points. This will be used for figuring out the shortest railroad connection
 # between a player and a fixed starting point in the enhanced farming world.
-# Nodes are defined as lists: <l@x,y,z,world>/g_value/f_value
+# Nodes are defined as lists: li@l@x,y,z,world/g_value/f_value
 a_star:
     type: procedure
     definitions: start|goal
@@ -45,9 +45,13 @@ g_score:
     definitions: node
     speed: 1t
     script:
-        - define g_val <def[node].get_sub_items[2]>
-        - narrate "g_score was %g_val%"
-        - determine %g_val%
+        - define node <def[node].unescaped>
+        #- narrate "node was <def[node]>"
+
+        - define g_val <def[node].get_sub_items[2].get[1]>
+        #- narrate "g_score was <def[g_val]>"
+
+        - determine <def[g_val]>
 
 
 # This helper script returns the f value (Estimated total cost until goal) of a node.
@@ -56,29 +60,38 @@ f_score:
     definitions: node
     speed: 1t
     script:
-        - define f_val <def[node].get_sub_items[3]>
-        - narrate "f_score was %f_val%"
-        - determine %f_val%
+        - define node <def[node].unescaped]>
+        #- narrate "node was <def[node]>"
+
+        - define f_val <def[node].get_sub_items[3].get[1]>
+        #- narrate "f_score was <def[f_val]>"
+
+        - determine <def[f_val]>
 
         
 # This helper script finds the node with the lowest f value
 # in the open set and returns it.
+# Usage: <proc[min_f].context[<li@li@loc/g/f|li@loc/g/f.escaped>]>
 min_f:
     type: procedure
     definitions: openset
     speed: 1t
     script:
+        - define openset <def[openset].unescaped]>
+        #- narrate "openset <def[openset]>"
+
         # set dummy value 
         - define min_f 999999
         
         # iterate through all nodes in the open set
         # and find the one with the lowest f value.
         - foreach <def[openset]> {
-            - define currentval <proc[f_score].context[%value%]>
-            - if  %currentval% < %min_f% {
-                - define min_f %currentval%
+            #- narrate "foreach value was <def[value]>"
+            - define current_f <proc[f_score].context[<def[value]>]>
+            - if  <def[current_f]> < <def[min_f]> {
+                - define min_f <def[current_f]>
             }
         }
         
-        - narrate "min_f was %min_f%"
-        - determine %min_f%
+        - narrate "min_f was <def[min_f]>"
+        - determine <def[min_f]>
