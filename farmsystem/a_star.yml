@@ -1,5 +1,5 @@
 # This script implements an A* algorithm for finding the shortest path between
-# two points. This will be used for figuring out the shortest railroad connection
+# two points (nodes). This will be used for figuring out the shortest railroad connection
 # between a player and a fixed starting point in the enhanced farming world.
 # Nodes are defined as lists: li@l@x,y,z,world/g_value/f_value
 a_star:
@@ -34,11 +34,136 @@ a_star:
         # Continue algorithm as long as there nodes to expand
         # in the open set
         - while <def[openset].is_empty> == false {
-            - define current 
+            # get node with lowest f value
+            - define current <proc[min_f]>
+            
+            # if the goal was reached, output the path
+            # as a list of locations (add failure clause here?)
+            - if <def[current]> == <def[goal]> {
+                - determine <def[came_from].get_sub_items[1]>
+            }
+            
+            # remove current node from the open set ...
+            - define openset <def[openset].exclude[<def[current]>]>
+            
+            # ... and add it to the closed set
+            - define closedset <def[closedset].include[<def[current]>]>
+            
+            # get valid neighbors of the current node
+            - define neighbor_nodes <proc[<def[current].get_sub_items[1]>]>
+            
+            
+            - foreach 
         }
 
 
+# This helper script finds all valid neighbors of a passed node as
+# a list, which will contain a maximum of four nodes (node locations).
+# This means that potentially all non-diagonal blocks from y+1 to y-1
+# around the origin block can be considered, since rail tracks can
+# only be placed on blocks that have a maximum y difference of 1.
+find_neighbors:
+    type: procedure
+    definitions: node
+    speed: 1t
+    script:
+        - narrate "node was <def[node]>"
+        
+        - define loc <def[node].get[1]>
+        - narrate "origin was <def[loc]>"
+        
+        # Direction: z-1
+        - define x <def[loc].x>
+        - define y <def[loc].y.add[1]>
+        - define z <def[loc].z.sub[1]>
+        - define world <def[loc].world>
+        
+        - if <proc[check_rail_placeable].context[<l@%x%,%y%,%z%,%world%>]> {
 
+        
+# This helper script checks if a rail can be placed on the passed block or the two
+# below it, and returns a valid block location if there was any.
+# Careful: The block BELOW the rail has to be compatible, so when the rail is put
+# into place, it has to be placed above the location since it is an entity!
+#
+# Strategy: For each direction, check the blocks
+# top-down. Because the maximum y difference is 1,
+# the first valid (= rail-compatible, i.e. not water)
+# block denies access to the blocks below it, so these
+# do not have to be checked unless the blocks above them
+# are air.
+check_rail_placeable:
+    type: procedure
+    definitions: loc
+    speed: 1t
+    script:
+        # loop ending condition
+        - define status continue
+        
+        # retain origin location by using
+        # a new variable
+        - define inloc <def[loc]>
+        
+        # dummy output location for the case
+        # that no block matches
+        - define outloc -1
+        
+        # start at top block and go down a maximum
+        # of two blocks from the origin loc
+        while <def[status]> == continue && <def[loc].y.sub[<def[inloc].y>]> < 3 {
+        
+            # The material of the block the rail should be placed on must
+            # be solid (i.e. not water, air...)
+            - if <def[loc].material.is_solid> == true {
+            
+                # Block is solid, but must not be transparent (chests, glass..)
+                - if <def[loc].material.is_transparent> == false {
+                
+                    # Block is solid and non-transparent, check if air above
+                    - if <def[loc].above.material> == <m@air> {
+                    
+                        # Rail is placeable!
+                        - define status accept
+                        - define outloc <def[inloc]>
+                        
+                    # Block is solid and non-transparent,
+                    # but there is no free space above
+                    } else {
+                    
+                        # this blocks all potential neighbors below, abort
+                        - define status abort
+                    }
+                
+                # Block is solid, but transparent
+                } else {
+                    
+                    # this blocks all potential neighbors below, abort
+                    - define status abort
+                }
+            
+            # Block is not solid
+            } else {
+                
+                # if the block is air, the block below might be suitable
+                - if <def[loc].material> == <m@air> {
+                
+                    # continue with block below
+                    - define status continue
+                    - define inloc <l@<def[inloc].x>,<def[inloc].y.sub[1]>,<def[inloc].z>,<def[inloc].world>>
+                
+                # else, there's water or lava, which means that the
+                # block below is either solid or also water/lava
+                } else {
+                
+                    # hence abort search
+                    - define status abort
+                }
+            }
+            - narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"
+            - determine <def[outloc]>
+        }
+        
+        
 # This helper script returns the g value (cost from start) of a node.
 g_score:
     type: procedure
@@ -90,8 +215,9 @@ min_f:
             - define current_f <proc[f_score].context[<def[value]>]>
             - if  <def[current_f]> < <def[min_f]> {
                 - define min_f <def[current_f]>
+                - define min_node <def[value]>
             }
         }
         
-        - narrate "min_f was <def[min_f]>"
-        - determine <def[min_f]>
+        - narrate "min_f was <def[min_f]>, min_node was <def[min_node]>"
+        - determine <def[min_node]>
