@@ -121,17 +121,17 @@ check_rail_placeable:
 
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
-            - if <def[loc].material.is_solid> == true {
+            - if <def[inloc].material.is_solid> == true {
             
                 # Block is solid, but must not be transparent (chests, glass..)
-                - if <def[loc].material.is_transparent> == false {
+                - if <def[inloc].material.is_transparent> == false {
                 
                     # Block is solid and non-transparent, check if air above
-                    - if <def[loc].above.material> == <m@air> {
+                    - if <def[inloc].above.material> == <m@air> {
                     
                         # Rail is placeable!
                         - narrate "solid, non-transparent, space above, ACCEPT"
-                        - define status accept
+                        - define status abort
                         - define outloc <def[inloc]>
                         
                     # Block is solid and non-transparent,
@@ -155,7 +155,7 @@ check_rail_placeable:
             } else {
                 
                 # if the block is air, the block below might be suitable
-                - if <def[loc].material> == <m@air> {
+                - if <def[inloc].material> == <m@air> {
                 
                     # continue with block below
                     - narrate "non-solid, air, CONTINUE LOWER"
@@ -182,6 +182,7 @@ check_rail_placeable:
         }
         
         # finally return the valid neighbor block or -1, if there was none
+        - narrate "returning..."
         - determine <def[outloc]>
         
 # This helper script returns the g value (cost from start) of a node.
