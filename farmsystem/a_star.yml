@@ -1,7 +1,7 @@
 # This script implements an A* algorithm for finding the shortest path between
 # two points (nodes). This will be used for figuring out the shortest railroad connection
 # between a player and a fixed starting point in the enhanced farming world.
-# Nodes are defined as lists: li@l@x,y,z,world/g_value/f_value
+# Nodes are defined as lists: li@l@x,y,z,world/g_value/f_value/came_from_node
 a_star:
     type: procedure
     definitions: start|goal
@@ -53,7 +53,30 @@ a_star:
             - define neighbor_nodes <proc[find_neighbors].context[<def[current].get_sub_items[1]>]>
             
             
-            - foreach 
+            - foreach neighbor_nodes {
+                # CHECK WHERE NODES HAVE TO CONTAIN G/F OTHERWISE THEY WON'T BE FOUND <---------TODO
+                - define neighbor_index <def[closedset].find[<def[value]>]>
+                
+                # if the neighbor has been evaluated before
+                - if <def[neighbor_index]> == -1 {
+                    # do nothing.
+                } else {
+                    - define distance <def[current].distance[<def[value]>]>
+                    - define tentative_g_score <proc[g_score].context[<def[current].escaped>].add[<def[distance]>]>
+                    
+                    # check if neighbor is not in the open set
+                    - define neighbor_index <def[openset].find[<def[value]>]>
+                    
+                    # if neighbor is not in open set or tentative g score is smaller than
+                    # the real g score of the neighbor ...
+                    - if <def[neighbor_index].is[!EQUALS].to[-1]> || <def[tentative_g_score].is[LESS].than[<proc[g_score].context[<def[value].escaped>]>]> {
+                        
+                        # ... add origin node as the
+                        # current neighbor's came_from node
+                        # TODO: get old neighbor, update came_from (formerly null), remove, insert at same position
+                        - define updated_neighbor 
+                }
+                
         }
 
 
