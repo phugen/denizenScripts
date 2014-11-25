@@ -28,19 +28,19 @@ a_star:
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
-        - define f_start <def[g_start].add[<def[start].distance[<def[goal]>]>]>
+        - define f_start <def[g_start].add[<def[start].get_sub_items[1].get[1].distance[<def[goal].get_sub_items[1].get[1]>]>]>
         #- narrate "f_start <def[f_start]>"
         
         # Continue algorithm as long as there nodes to expand
         # in the open set
         - while <def[openset].is_empty> == false {
             # get node with lowest f value
-            - define current <proc[min_f]>
+            - define current <proc[min_f].context[<def[openset].escaped>]>
             
             # if the goal was reached, output the path
             # as a list of locations (add failure clause here?)
             - if <def[current]> == <def[goal]> {
-                - determine <def[came_from].get_sub_items[1]>
+                - determine <proc[reconstruct_path].context[<def[came_from].escaped>|<def[goal].escaped>]>
             }
             
             # remove current node from the open set ...
@@ -50,38 +50,95 @@ a_star:
             - define closedset <def[closedset].include[<def[current]>]>
             
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[find_neighbors].context[<def[current].get_sub_items[1]>]>
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>]>
             
-            
+            # Step through all neighbor nodes of the current node
             - foreach neighbor_nodes {
-                # CHECK WHERE NODES HAVE TO CONTAIN G/F OTHERWISE THEY WON'T BE FOUND <---------TODO
-                - define neighbor_index <def[closedset].find[<def[value]>]>
+                # search neighbors using their location only since g and f values
+                # are not yet set; otherwise, they wouldn't be recognized as in the list
+                - define neighbor_loc <def[value].get_sub_items[1].get[1]>
+                - define neighbor_node <def[closedset].filter[starts_with[li@%neighbor_loc%]]>
+                - narrate "neighbor_node was <def[neighbor_node]>"
+                
+                # then, using the (potentially) found node, try to get
+                # its position in the closed set
+                - define neighbor_index_closed <def[closedset].find[<def[neighbor_node]>]>
                 
                 # if the neighbor has been evaluated before
-                - if <def[neighbor_index]> == -1 {
+                - if <def[neighbor_index_closed]> == -1 {
                     # do nothing.
                 } else {
-                    - define distance <def[current].distance[<def[value]>]>
+                    # calculate a preliminary g value for the neighbor node
+                    - define distance <def[current].distance[<def[neighbor_node]>]>
                     - define tentative_g_score <proc[g_score].context[<def[current].escaped>].add[<def[distance]>]>
                     
                     # check if neighbor is not in the open set
-                    - define neighbor_index <def[openset].find[<def[value]>]>
+                    # CHECK IF DOUBLE USE OF NEIGHBOR_NODE IS OK! <-------- TODO
+                    - define neighbor_node <def[openset].filter[starts_with[li@%neighbor_loc%]]>
+                    - define neighbor_index_open <def[openset].find[<def[neighbor_node]>]>
                     
                     # if neighbor is not in open set or tentative g score is smaller than
                     # the real g score of the neighbor ...
-                    - if <def[neighbor_index].is[!EQUALS].to[-1]> || <def[tentative_g_score].is[LESS].than[<proc[g_score].context[<def[value].escaped>]>]> {
+                    - if <def[neighbor_index_open].is[!EQUALS].to[-1]> || <def[tentative_g_score].is[LESS].than[<proc[g_score].context[<def[neighbor_node].escaped>]>]> {
                         
-                        # ... add origin node as the
-                        # current neighbor's came_from node
-                        # TODO: get old neighbor, update came_from (formerly null), remove, insert at same position
-                        - define updated_neighbor 
+                        # ... update the neighbor node's
+                        # g/f-value and came_from node
+                        - define new_came_from <def[current].get_sub_items[1].get[1]>
+                        - define new_loc <def[neighbor_node].get_sub_items[1].get[1]>
+                        - define new_distance <def[neighbor_node].sub_items_get[1].get[1].distance[<def[goal]>.get_sub_items[1].get[1]]>
+                        - define new_g_score <def[tentative_g_score]>
+                        - define new_f_score <proc[g_score].context[<def[neighbor_node].escaped>].add[<def[new_distance]>]>
+                        
+                        - define new_neighbor <li@%new_loc%/%new_g_score%/%new_f_score%/%new_came_from%>
+                        
+                        # replace old node with updated, new node
+                        - define neighbor_index <def[neighbor_nodes].find[<def[neighbor_node]>]>
+                        - define neighbor_nodes <def[neighbor_nodes].exclude[<def[neighbor_node]>]>
+                        - define neighbor_nodes <def[neighbor_nodes].set[<def[new_neighbor]>].at[<def[neighbor_index]>]>
+                        
+                        # add update neighbor to open set if
+                        # it is not yet in there
+                        - if <def[neighbor_nodes].find[<def[new_neighbor]>].is[EQUALS].to[-1]> {
+                            - define <def[neighbor_nodes].include[<def[new_neighbor]>]>
+                        } 
                 }
-                
         }
+        
+        # If we reach the end of the loop without
+        # having returned upon encountering the goal node,
+        # there was no way from start to goal.
+        - determine -1
 
-
+# This helper script reconstructs the path the algorithm
+# has taken, using the "came_from" field in the nodes' definition.
+reconstruct_path:
+    type: procedure
+    definitions: came_from|current
+    speed: 1t
+    script:
+        - define came_from <def[came_from].unescaped>
+        - define current <def[current].unescaped>
+        
+        # path from start to goal
+        - define total_path <li@%current%>
+        
+        # while current node is in the the came_from list
+        - while <def[came_from].find[<def[current]>].is[!EQUALS].to[-1]> {
+            
+            # find previous node by its location saved in the came_from field
+            - define current <def[came_from].filter[ends_with[<def[current].get_sub_items[1].get[1]>]]>
+            
+            # path begins with the last node, so insertions
+            # have to be made in reverse order to output the
+            # path from start to finish!
+            - define total_path <def[total_path].insert[<def[current]>].at[0]>
+        }
+        
+        # return full path
+        - determine <def[total_path]>
+        
 # This helper script finds all valid neighbors of a passed node as
-# a list, which will contain a maximum of four nodes (node locations).
+# a list, which will contain a maximum of four nodes.
 # This means that potentially all non-diagonal blocks from y+1 to y-1
 # around the origin block can be considered, since rail tracks can
 # only be placed on blocks that have a maximum y difference of 1.
@@ -90,11 +147,12 @@ find_neighbors:
     definitions: node
     speed: 1t
     script:
+        - define node <def[node].unescaped>
         - narrate "node was <def[node]>"
         
         # center location whose neighbors shall
         # be found by this procedure
-        - define loc <def[node].get[1].as_location>
+        - define loc <def[node].get_sub_items[1].get[1].as_location>
         #- narrate "origin was <def[loc]>"
 
         # output list of valid neighbors
@@ -139,6 +197,7 @@ find_neighbors:
             #- narrate "checklist neighbor was <def[neighbor]>" 
        
             # if there was a valid neighbor, add it to the output list
+            # and calculate its g and f values
             - if <def[neighbor]> != -1 {
                 #- narrate "Adding neighbor <def[neighbor]>"
                 - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
@@ -277,11 +336,26 @@ f_score:
         #- narrate "f_score was <def[f_val]>"
 
         - determine <def[f_val]>
+        
+
+# This helper script fetches the came_from value from a passed node.
+# The came_from value is not an entire node, but instead just the location
+# of the node, which can then be looked up.
+came_from:
+    type: procedure
+    definitions: node
+    speed: 1t
+    script:
+        - define node <def[node].unescaped]>
+        - define came_from <def[node].get_sub_items[4].get[1]>
+        
+        - determine <def[came_from]>
+        
 
         
 # This helper script finds the node with the lowest f value
 # in the open set and returns it.
-# Usage: <proc[min_f].context[<li@li@loc/g/f|li@loc/g/f.escaped>]>
+# Usage: <proc[min_f].context[<li@li@loc/g/f|li@loc/g/f.escaped/came_from>]>
 min_f:
     type: procedure
     definitions: openset
