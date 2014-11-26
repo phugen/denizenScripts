@@ -68,7 +68,7 @@ a_star:
         
         # Continue algorithm as long as there nodes to expand
         # in the open set
-        - while <def[openset].is_empty.is[EQUALS].to[false]> {
+        - while <def[openset].is_empty.is[EQUALS].to[true]> {
             # get node with lowest f value
             - define current <proc[min_f].context[<def[openset].escaped>]>
             
