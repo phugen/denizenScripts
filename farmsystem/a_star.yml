@@ -1,3 +1,23 @@
+# Will test if there is a railroad path from the player's
+# location to a fixed, predefined point.
+train:
+    type: command
+    name: train
+    description: "Versucht, einen Zug zur aktuellen Position herbeizurufen."
+    usage: /train
+    script:
+        - define departure_loc <l@1363,69,25,world>
+        - define path <proc[a_star].context[<li@start/<player.location>/0/0/null>|<li@goal/%departure_loc%/0/0/null>]
+        
+        # if A* could find a proper path, output it,
+        # otherwise, state failure reason.
+        - if <def[path].is[!EQUALS].to[-1]> {
+            - narrate "Path is <def[path]>"
+        } else {
+            - narrate "Es konnte kein gueltiger Pfad gefunden werden!"
+        }
+
+
 # This script implements an A* algorithm for finding the shortest path between
 # two points (nodes). This will be used for figuring out the shortest railroad connection
 # between a player and a fixed starting point in the enhanced farming world.
@@ -7,6 +27,7 @@
 # The IDs are continuous integers, starting from 0 and going as high as need be. Start and goal
 # nodes have string IDs so one doesn't run into issues when dealing with very long
 # paths that would exceed a static goal integer id.
+# >>>1363,69,25,world
 a_star:
     type: procedure
     definitions: start|goal
