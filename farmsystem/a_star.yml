@@ -6,8 +6,14 @@ train:
     description: "Versucht, einen Zug zur aktuellen Position herbeizurufen."
     usage: /train
     script:
+        # hub position
         - define departure_loc <l@1363,69,25,world>
-        - define path <proc[a_star].context[<li@start/<player.location>/0/0/null>|<li@goal/%departure_loc%/0/0/null>]
+        
+        # player position
+        - define destination_loc <player.location>
+        
+        # invoke A*
+        - define path <proc[a_star].context[<li@start/%destination_loc%/0/0/null>|<li@goal/%departure_loc%/0/0/null>]>
         
         # if A* could find a proper path, output it,
         # otherwise, state failure reason.
