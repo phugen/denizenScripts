@@ -58,7 +58,11 @@ a_star:
             - define closedset <def[closedset].include[<def[current]>]>
             
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>]>
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[node_id_cnt]>]>
+            
+            # update the id count by adding the number of actually returned neighbors
+            # to the initial value
+            - define node_id_cnt <def[node_id_cnt].add[<def[neighbor_nodes].size>]>
             
             # Step through all neighbor nodes of the current node
             - foreach neighbor_nodes {
