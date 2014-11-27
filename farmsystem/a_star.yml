@@ -69,6 +69,9 @@ a_star:
         # Continue algorithm as long as there nodes to expand
         # in the open set
         - while <def[openset].is_empty.is[!EQUALS].to[true]> {
+        
+            - narrate "openset was <def[openset]>"
+            
             # get node with lowest f value
             - define current <proc[min_f].context[<def[openset].escaped>]>
             
@@ -141,7 +144,7 @@ a_star:
                         # it is not yet in there
                         - if <def[neighbor_nodes].find[<def[new_neighbor]>].is[EQUALS].to[-1]> {
                             - define <def[neighbor_nodes].include[<def[new_neighbor]>]>
-                        } 
+                        }
                     }
                 }
             }
