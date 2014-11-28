@@ -76,6 +76,7 @@ a_star:
             
             # get node with lowest f value
             - define current <proc[min_f].context[<def[openset].escaped>]>
+            - narrate "current was <def[current]>"
             
             # if the goal was reached, output the path
             # as a list of locations (add failure clause here?)
@@ -243,14 +244,16 @@ find_neighbors:
         
         # Neighboring blocks to be checked
         - define checklist <li@%n1%|%n2%|%n3%|%n4%>
-        #- narrate "checklist <def[checklist]>"
+        - narrate "checklist <def[checklist]>"
         
         - foreach <def[checklist]> {
+        
+            - narrate "checklist member was <def[value]>"
         
             # add information to neighbor node
             - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>]>
             - define neighbor_distance <def[neighbor_loc].distance[<def[current].get_sub_items[2].get[1]>]> 
-            - define neighbor_g_score <%g_score%.add[%neighbor_distance%]>
+            - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
             - define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[1].get[2]>]>            
             - define neighbor_parent <def[node].get_sub_items[1].get[1]>
 
