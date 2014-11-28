@@ -68,6 +68,8 @@ a_star:
         - define start <li@start/%startloc%/%g_score%/%f_score%/null>
         - narrate "Start after update was <def[start]>"
         
+        - wait 5s
+        
         # Continue algorithm as long as there nodes to expand
         # in the open set
         - while <def[openset].is_empty.is[!EQUALS].to[true]> {
@@ -120,7 +122,7 @@ a_star:
                     
                     # check if neighbor is not in the open set
                     # CHECK IF DOUBLE USE OF NEIGHBOR_NODE IS OK! <-------- TODO
-                    - define neighbor_node <def[openset].filter[starts_with[%neighbor_id%]]>
+                    - define neighbor_node <def[openset].filter[starts_with[<def[neighbor_id]>]]>
                     - define neighbor_index_open <def[openset].find[<def[neighbor_node]>]>
                     
                     # if neighbor is not in open set or tentative g score is smaller than
