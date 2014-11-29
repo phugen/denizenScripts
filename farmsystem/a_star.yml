@@ -7,20 +7,20 @@ train:
     usage: /train
     script:
         # hub position
-        - define departure_loc <l@1363,69,25,world>
+        - define departure_loc <l@1363,68,25,world>
         
-        # player position
-        - define destination_loc <player.location>
+        # player position without decimals
+        - define destination_loc <player.location.below.block>
         
         # invoke A*
         - define path <proc[a_star].context[<li@start/%destination_loc%/0/0/null>|<li@goal/%departure_loc%/0/0/null>]>
         
         # if A* could find a proper path, output it,
-        # otherwise, state failure reason.
-        - if <def[path].is[!EQUALS].to[-1]> {
-            - narrate "Path is <def[path]>"
-        } else {
+        # else, give a error reply.
+        - if <def[path]> == -1 {
             - narrate "Es konnte kein gueltiger Pfad gefunden werden!"
+        } else {
+            - narrate "Path is <def[path]>"
         }
 
 
@@ -39,23 +39,18 @@ a_star:
     definitions: start|goal
     speed: 1t
     script:
-        - narrate "start <def[start]>"
-        - narrate "goal <def[goal]>"
+
+        #- narrate "start <def[start]>"
+        #- narrate "goal <def[goal]>"
     
         # start counting node IDs at 0
         - define node_id_cnt 0
-        
-        # Nodes that already have been evaluated
-        - define closedset <li@>
-        
-        # Nodes waiting to be evaluated.
-        - define openset <li@%start%>
         
         # The path to the goal, if it exists.
         - define came_from <li@>
         
         # The cost from the start along the best known path.
-        - define g_score <el@0>
+        - define g_score 0
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
@@ -64,37 +59,58 @@ a_star:
 
         # id/loc/g/f/came_from_id
         # Update g and f scores of the start node.
-        - define startloc <def[start].get_sub_items[1].get[1]>
+        - define startloc <def[start].get_sub_items[2].get[1]>
         - define start <li@start/%startloc%/%g_score%/%f_score%/null>
-        - narrate "Start after update was <def[start]>"
         
-        - wait 5s
+        # Nodes waiting to be evaluated. At first, only
+        # the "start" node is added.
+        - define openset <def[start]>
+
+        # Nodes that already have been evaluated.
+        - define closedset <li@>
+        
         
         # Continue algorithm as long as there nodes to expand
         # in the open set
-        - while <def[openset].is_empty.is[!EQUALS].to[true]> {
+        - while <def[openset].is_empty.is[EQUALS].to[false]> {
         
-            - narrate "openset was <def[openset]>"
-            
             # get node with lowest f value
             - define current <proc[min_f].context[<def[openset].escaped>]>
-            - narrate "current was <def[current]>"
+            #- narrate "current was <def[current]>"
             
             # if the goal was reached, output the path
-            # as a list of locations (add failure clause here?)
-            - if <def[current].get_sub_items[1].get[1].is[EQUALS].to[goal]> {
-                - determine <proc[reconstruct_path].context[<def[came_from].escaped>|<def[goal].escaped>]>
+            # as a list of locations
+            - if <def[current].get_sub_items[1].get[1]> == goal {
+                # add goal to closed set
+                - define closedset <def[closedset].include[<def[current]>]>                
+
+                - determine <proc[reconstruct_path].context[<def[closedset].escaped>|<def[goal].escaped>]>
             }
             
             # remove current node from the open set ...
             - define openset <def[openset].exclude[<def[current]>]>
+            #- narrate "openset was <def[openset].size>"
             
             # ... and add it to the closed set
             - define closedset <def[closedset].include[<def[current]>]>
+            #- narrate "closedset was <def[closedset].size>"
             
+            # DEBUG output, show open set as red wool
+            - foreach <def[openset]> {
+                - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]>
+            }
+
+            - wait 0.5s
+
+            # DEBUG output, show closed set as blue wool
+            - foreach <def[closedset]> {
+                - showfake <m@blue_wool> <def[value].as_list.get_sub_items[2].get[1]>
+            }
+
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|%g_score%|%node_id_cnt%|<def[goal].escaped>]>
-            
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[g_score]>|<def[node_id_cnt]>|<def[goal].escaped>]>
+            #- narrate "NEIS was <def[neighbor_nodes]>"
+
             # update the id count by adding the number of actually returned neighbors
             # to the initial value
             - define node_id_cnt <def[node_id_cnt].add[<def[neighbor_nodes].size>]>
@@ -102,10 +118,14 @@ a_star:
             # Step through all neighbor nodes of the current node
             - foreach <def[neighbor_nodes]> {
             
+                #- narrate "value was <def[value]>"
+
                 # search neighbor using their id
-                - define neighbor_id <def[value].get_sub_items[1].get[1]>
-                - define neighbor_node <def[closedset].filter[starts_with[%neighbor_id%]]>
-                - narrate "neighbor_node was <def[neighbor_node]>"
+                - define neighbor_id <def[value].as_list.get_sub_items[1].get[1]>
+                #- narrate "neighbor_id was <def[neighbor_id]>"
+
+                - define neighbor_node <def[closedset].filter[starts_with[<def[neighbor_id]>]]>
+                #- narrate "neighbor_node was <def[neighbor_node]>"
                 
                 # then, using the (potentially) found node, try to get
                 # its position in the closed set
@@ -113,49 +133,51 @@ a_star:
                 
                 # if the neighbor has been evaluated before
                 - if <def[neighbor_index_closed]> == -1 {
-                    # do nothing.
-                } else {
+                    # do nothing and continue the loop
+                    # with the next neighbor node
+                    - foreach next
+                }
                 
-                    # calculate a preliminary g value for the neighbor node
-                    - define distance <def[current].distance[<def[neighbor_node]>]>
-                    - define tentative_g_score <proc[g_score].context[<def[current].escaped>].add[<def[distance]>]>
+                # calculate a preliminary g value for the neighbor node
+                - define distance <def[current].as_list.get_sub_items[2].get[1].distance[<def[value].as_list.get_sub_items[2].get[1]>]>
+                - define tentative_g_score <def[current].as_list.get_sub_items[3].get[1].add[<def[distance]>]>
                     
-                    # check if neighbor is not in the open set
-                    # CHECK IF DOUBLE USE OF NEIGHBOR_NODE IS OK! <-------- TODO
-                    - define neighbor_node <def[openset].filter[starts_with[<def[neighbor_id]>]]>
-                    - define neighbor_index_open <def[openset].find[<def[neighbor_node]>]>
+                # check if neighbor is not in the open set
+                - define neighbor_node_open <def[openset].filter[starts_with[<def[neighbor_id]>]]>
+                - define neighbor_index_open <def[openset].find[<def[neighbor_node_open]>]>
                     
-                    # if neighbor is not in open set or tentative g score is smaller than
-                    # the real g score of the neighbor ...
-                    - if <def[neighbor_index_open].is[!EQUALS].to[-1]>||<def[tentative_g_score].is[LESS].than[<proc[g_score].context[<def[neighbor_node].escaped>]>]> {
-                        
-                        # ... update the neighbor node's
-                        # g/f-value and came_from node
-                        - define new_id <def[neighbor_node].get_sub_items[1].get[1]>
-                        - define new_loc <def[neighbor_node].get_sub_items[2].get[1]>
-                        - define new_distance <def[neighbor_node].sub_items_get[2].get[1].distance[<def[goal]>.get_sub_items[2].get[1]]>
-                        - define new_g_score <def[tentative_g_score]>
-                        - define new_f_score <proc[g_score].context[<def[neighbor_node].escaped>].add[<def[new_distance]>]>
-                        - define new_came_from <def[current].get_sub_items[1].get[1]>
-                        
-                        - define new_neighbor <li@%new_id%/%new_loc%/%new_g_score%/%new_f_score%/%new_came_from%>
-                        - narrate "new_neighbor was <def[new_neighbor]>"
+                #- narrate "openset was <def[openset]>"
 
-                        # replace old node with updated, new node
-                        - define neighbor_index <def[neighbor_nodes].find[<def[neighbor_node]>]>
-                        - define neighbor_nodes <def[neighbor_nodes].exclude[<def[neighbor_node]>]>
-                        - define neighbor_nodes <def[neighbor_nodes].insert[<def[new_neighbor]>].at[<def[neighbor_index]>]>
+                # if neighbor is not in open set or tentative g score is smaller than
+                # the real g score of the neighbor ...
+                - if <def[neighbor_index_open].is[EQUALS].to[-1]> || <def[tentative_g_score].is[LESS].than[<def[value].as_list.get_sub_items[3].get[1]>]> {
                         
-                        # add update neighbor to open set if
-                        # it is not yet in there
-                        - if <def[neighbor_nodes].find[<def[new_neighbor]>].is[EQUALS].to[-1]> {
-                            - define neighbor_nodes <def[neighbor_nodes].include[<def[new_neighbor]>]>
-                        }
+                    # ... update the neighbor node's
+                    # g/f-value and came_from node
+                    - define new_id <def[value].as_list.get_sub_items[1].get[1]>
+                    - define new_loc <def[value].as_list.get_sub_items[2].get[1]>
+                    - define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[2].get[1]>]>
+                    - define new_g_score <def[tentative_g_score]>
+                    - define new_f_score <def[value].as_list.get_sub_items[3].get[1].add[<def[new_distance]>]>
+                    - define new_came_from <def[current].get_sub_items[1].get[1]>
+
+                    #- narrate "NEW_DISTANCE is <def[new_distance]>"
+                        
+                    - define new_neighbor %new_id%/%new_loc%/%new_g_score%/%new_f_score%/%new_came_from%
+                    #- narrate "G SECOND <def[new_g_score]>, F SECOND <def[new_f_score]>"
+
+                    # replace old node with updated, new node
+                    - define neighbor_index <def[neighbor_nodes].find[<def[value]>]>
+                    - define neighbor_nodes <def[neighbor_nodes].exclude[<def[value]>]>
+                    - define neighbor_nodes <def[neighbor_nodes].insert[<def[new_neighbor]>].at[<def[neighbor_index]>]>
+                        
+                    # add updated neighbor to open set if
+                    # it is not yet in there
+                    - if <def[openset].find[<def[new_neighbor]>]> == -1 {
+                        - define openset <def[openset].include[<def[new_neighbor]>]>
                     }
                 }
             }
-            
-            - wait 1s
         }
         
         # If we reach the end of the loop without
@@ -167,20 +189,22 @@ a_star:
 # has taken, using the "came_from" field in the nodes' definition.
 reconstruct_path:
     type: procedure
-    definitions: came_from|current
+    definitions: closedset|current
     speed: 1t
     script:
-        - define came_from <def[came_from].unescaped>
+        - define closedset <def[closedset].unescaped>
         - define current <def[current].unescaped>
+
+        - narrate "CLOSEDSET was <def[closedset]>, CURRENT was <def[current]>"
         
         # path from start to goal
-        - define total_path <li@%current%>
+        - define total_path %current%
         
-        # while current node is in the the came_from list
-        - while <def[came_from].find[<def[current]>].is[!EQUALS].to[-1]> {
+        # while current node is in the the closed set ...
+        - while <def[closedset].filter[starts_with[<def[current].as_list.get_sub_items[1].get[1]>]].size.is[MORE].than[0]> {
             
-            # find previous node by its id saved in the came_from field
-            - define current <def[came_from].filter[starts_with[<def[current].get_sub_items[5].get[1]>]]>
+            # ... find previous node by its id saved in the came_from field
+            - define current <def[closedset].filter[starts_with[<def[current].get_sub_items[5].get[1]>]]>
             
             # path begins with the last node, so insertions
             # have to be made in reverse order to output the
@@ -201,9 +225,8 @@ find_neighbors:
     definitions: node|g_score|id_cnt|goal
     speed: 1t
     script:
+        #- narrate "FIND_NEI <def[node].unescaped> , <def[g_score]> , <def[id_cnt]> , <def[goal].unescaped>"
         - define node <def[node].unescaped>
-        - narrate "node was <def[node]>"
-
         - define goal <def[goal].unescaped>
         
         # center location whose neighbors shall
@@ -246,26 +269,36 @@ find_neighbors:
         
         # Neighboring blocks to be checked
         - define checklist <li@%n1%|%n2%|%n3%|%n4%>
-        - narrate "checklist <def[checklist]>"
+        #- narrate "checklist <def[checklist]>"
         
         - foreach <def[checklist]> {
         
-            - narrate "checklist member was <def[value]>"
+            #- narrate "checklist member was <def[value]>"
         
             # add information to neighbor node
             - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>]>
-            - define neighbor_distance <def[neighbor_loc].distance[<def[current].get_sub_items[2].get[1]>]> 
+            - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[2].get[1]>]> 
             - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
-            - define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[1].get[2]>]>            
+            - define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[2].get[1]>]>            
             - define neighbor_parent <def[node].get_sub_items[1].get[1]>
 
-            - define neighbor <li@%id_cnt%/%neighbor_loc%/%neighbor_g_score%/%neighbor_f_score%/%neighbor_parent%>
-            - narrate "checklist neighbor was <def[neighbor]>" 
+            # if the goal was reached, mark it by using a special ID
+            #- narrate "<def[neighbor_loc]> VS <def[goal].as_list.get_sub_items[2].get[1]>"
+            - define id_cnt_backup <def[id_cnt]>
+            - if <def[neighbor_loc]> == <def[goal].as_list.get_sub_items[2].get[1]> {
+                - narrate "FOUND GOAL AS NEIGHBOR"
+                - define id_cnt goal
+            }
+
+            #- narrate "G_FIRST <def[neighbor_g_score]>, F_FIRST <def[neighbor_f_score]>"
+            - define neighbor %id_cnt%/%neighbor_loc%/%neighbor_g_score%/%neighbor_f_score%/%neighbor_parent%
+            - define id_cnt <def[id_cnt_backup]>
+            - define id_cnt <def[id_cnt].add[1]> 
        
             # if there was a valid neighbor, add it to the output list
             # and calculate its g and f values
-            - if <def[neighbor]> != -1 {
-                - narrate "Adding neighbor <def[neighbor]>"
+            - if <def[neighbor].as_list.get_sub_items[2].get[1]> != -1 {
+                #- narrate "Adding neighbor <def[neighbor]>"
                 - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
             }
         }
@@ -375,55 +408,10 @@ check_rail_placeable:
         #- narrate "returning..."
         - determine <def[outloc]>
         
-# This helper script returns the g value (cost from start) of a node.
-g_score:
-    type: procedure
-    definitions: node
-    speed: 1t
-    script:
-        - define node <def[node].unescaped>
-        #- narrate "node was <def[node]>"
-
-        - define g_val <def[node].get_sub_items[3].get[1]>
-        #- narrate "g_score was <def[g_val]>"
-
-        - determine <def[g_val]>
-
-
-# This helper script returns the f value (Estimated total cost until goal) of a node.
-f_score:
-    type: procedure
-    definitions: node
-    speed: 1t
-    script:
-        - define node <def[node].unescaped]>
-        #- narrate "node was <def[node]>"
-
-        - define f_val <def[node].get_sub_items[4].get[1]>
-        #- narrate "f_score was <def[f_val]>"
-
-        - determine <def[f_val]>
-        
-
-# This helper script fetches the came_from value from a passed node.
-# The came_from value is not an entire node, but instead just the id
-# of the node, which can then be used to look up the node in the closed
-# set.
-came_from:
-    type: procedure
-    definitions: node
-    speed: 1t
-    script:
-        - define node <def[node].unescaped]>
-        - define came_from <def[node].get_sub_items[5].get[1]>
-        
-        - determine <def[came_from]>
-        
 
         
 # This helper script finds the node with the lowest f value
 # in the open set and returns it.
-# Usage: <proc[min_f].context[<li@id/loc/g/f/came_from|li@id2...>]>
 min_f:
     type: procedure
     definitions: openset
@@ -438,13 +426,14 @@ min_f:
         # iterate through all nodes in the open set
         # and find the one with the lowest f value.
         - foreach <def[openset]> {
-            #- narrate "foreach value was <def[value]>"
-            - define current_f <proc[f_score].context[<def[value]>]>
+            # - narrate "F_NODE was <def[value]>"
+            - define current_f <def[value].as_list.get_sub_items[4].get[1]>
             - if  <def[current_f]> < <def[min_f]> {
                 - define min_f <def[current_f]>
                 - define min_node <def[value]>
             }
         }
         
-        - narrate "min_f was <def[min_f]>, min_node was <def[min_node]>"
-        - determine <def[min_node]>
+        
+        #- narrate "F_MIN was <def[min_f]>, node was <def[min_node]>"
+        - determine <def[min_node].as_list>

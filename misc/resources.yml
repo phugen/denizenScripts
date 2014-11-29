@@ -3,7 +3,6 @@ load_resources:
     type: world
     events:
         on player join:
-            - wait 20t
             - adjust <player> resource_pack:https://dropbox.com/s/czuxjzs8uu4ssh1/juriserver2.zip?dl=1
 
             
