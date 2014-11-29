@@ -7,7 +7,7 @@ train:
     usage: /train
     script:
         # hub position
-        - define departure_loc <l@1363,68,25,world>
+        - define departure_loc <l@1363,68,25,world.block>
         
         # player position without decimals
         - define destination_loc <player.location.below.block>
@@ -20,7 +20,8 @@ train:
         - if <def[path]> == -1 {
             - narrate "Es konnte kein gueltiger Pfad gefunden werden!"
         } else {
-            - narrate "Path is <def[path]>"
+            #- narrate "Path is <def[path]>"
+            - narrate "PFAD GEFUNDEN!"
         }
 
 
@@ -79,19 +80,20 @@ a_star:
             #- narrate "current was <def[current]>"
             
             # remove current node from the open set ...
+            #- narrate "openset BEFORE was <def[openset].size>"
             - define openset <def[openset].exclude[<def[current]>]>
-            #- narrate "openset was <def[openset].size>"
+            - narrate "closedset size was <def[closedset].size>"
             
             # ... and add it to the closed set
             - define closedset <def[closedset].include[<def[current]>]>
-            #- narrate "closedset was <def[closedset].size>"
+            #- narrate "closedset was <def[closedset]>"
             
             # if the goal was reached, output the path
             # as a list of locations
             - if <def[current].get_sub_items[1].get[1]> == goal {
                 # current/goal node was added to closed set, g and f scores
                 # don't matter anymore once we're here          
-                - determine <proc[reconstruct_path].context[<def[closedset].escaped>|<def[goal].escaped>]>
+                - determine <proc[reconstruct_path].context[<def[closedset].as_list.escaped>|<def[goal].as_list.escaped>]>
             }
             
             # DEBUG output, show open set as red wool
@@ -99,15 +101,13 @@ a_star:
                 - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]>
             }
 
-            - wait 0.3s
-
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
                 - showfake <m@blue_wool> <def[value].as_list.get_sub_items[2].get[1]>
             }
 
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[g_score]>|<def[node_id_cnt]>|<def[goal].escaped>]>
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[g_score]>|<def[node_id_cnt]>|<def[goal].escaped>|<def[closedset].escaped>]>
             #- narrate "NEIS was <def[neighbor_nodes]>"
 
             # update the id count by adding the number of actually returned neighbors
@@ -131,7 +131,7 @@ a_star:
                 - define neighbor_index_closed <def[closedset].find[<def[neighbor_node]>]>
                 
                 # if the neighbor has been evaluated before
-                - if <def[neighbor_index_closed]> == -1 {
+                - if <def[neighbor_index_closed]> != -1 {
                     # do nothing and continue the loop
                     # with the next neighbor node
                     - foreach next
@@ -177,6 +177,8 @@ a_star:
                     }
                 }
             }
+            
+            - wait 0.1s
         }
         
         # If we reach the end of the loop without
@@ -185,7 +187,7 @@ a_star:
         - determine -1
 
 # This helper script reconstructs the path the algorithm
-# has taken, using the "came_from" field in the nodes' definition.
+# has taken, using the "came_from" field in the nodes' definitions.
 reconstruct_path:
     type: procedure
     definitions: closedset|current
@@ -194,18 +196,23 @@ reconstruct_path:
         - define closedset <def[closedset].unescaped>
         - define current <def[current].unescaped>
 
-        - narrate "CLOSEDSET was <def[closedset]>, CURRENT was <def[current]>"
+        #- narrate "CLOSEDSET was <def[closedset]>, CURRENT was <def[current]>"
         
         # path from start to goal
-        - define total_path %current%
+        - define total_path <li@>
         
-        - narrate "SIZE <def[closedset].filter[starts_with[<def[current].as_list.get_sub_items[1].get[1]>]].size>"
         # while current node is in the the closed set ...
-        - while <def[closedset].filter[starts_with[<def[current].as_list.get_sub_items[1].get[1]>]].size.is[MORE].than[0]> {
+        - define parent_id <def[current].as_list.get_sub_items[1].get[1]>
+        #- narrate "PARENT_ID was <def[parent_id]>"
+
+        - while <def[closedset].filter[starts_with[<def[parent_id]>]].size.is[MORE].than[0]> {
             
             # ... find previous node by its id saved in the came_from field
-            - define current <def[closedset].filter[starts_with[<def[current].get_sub_items[5].get[1]>]]>
-            
+            - define current <def[closedset].filter[starts_with[<def[parent_id]>]].get[1]>
+            #- narrate "CURRENT was <def[current]>"
+
+            - define parent_id <def[current].as_list.get_sub_items[5].get[1]>
+
             # path begins with the last node, so insertions
             # have to be made in reverse order to output the
             # path from start to finish!
@@ -213,6 +220,11 @@ reconstruct_path:
         }
         
         # return full path
+        #- narrate "Full path is<&co> <def[total_path]>"
+        #- foreach <def[total_path]> {
+        #    - narrate "<def[value].as_list.get_sub_items[1].get[1]>"
+        #}
+
         - determine <def[total_path]>
         
 # This helper script finds all valid neighbors of a passed node as
@@ -222,16 +234,17 @@ reconstruct_path:
 # only be placed on blocks that have a maximum y difference of 1.
 find_neighbors:
     type: procedure
-    definitions: node|g_score|id_cnt|goal
+    definitions: node|g_score|id_cnt|goal|closedset
     speed: 1t
     script:
         #- narrate "FIND_NEI <def[node].unescaped> , <def[g_score]> , <def[id_cnt]> , <def[goal].unescaped>"
         - define node <def[node].unescaped>
         - define goal <def[goal].unescaped>
+        - define closedset <def[closedset].unescaped>
         
         # center location whose neighbors shall
         # be found by this procedure
-        - define loc <def[node].get_sub_items[2].get[1].as_location>
+        - define loc <def[node].as_list.get_sub_items[2].get[1]>
         #- narrate "origin was <def[loc]>"
 
         # output list of valid neighbors
@@ -274,12 +287,22 @@ find_neighbors:
         - foreach <def[checklist]> {
         
             #- narrate "checklist member was <def[value]>"
+            - define goal_loc <def[goal].get_sub_items[2].get[1]>
         
             # add information to neighbor node
             - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>]>
             - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[2].get[1]>]> 
             - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
-            - define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[2].get[1]>]>            
+
+            # old heuristic was the straight line distance
+            #- define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[2].get[1]>]>
+
+            # heuristic is the manhattan distance
+            - define f_x <def[neighbor_loc].x.sub[<def[goal_loc].x>].abs>
+            - define f_y <def[neighbor_loc].y.sub[<def[goal_loc].y>].abs>
+            - define f_z <def[neighbor_loc].z.sub[<def[goal_loc].z>].abs>
+            - define neighbor_f_score <def[f_x].add[<def[f_y].add[<def[y_z]>]>]>
+            
             - define neighbor_parent <def[node].get_sub_items[1].get[1]>
 
             # if the goal was reached, mark it by using a special ID
@@ -298,8 +321,13 @@ find_neighbors:
             # if there was a valid neighbor, add it to the output list
             # and calculate its g and f values
             - if <def[neighbor].as_list.get_sub_items[2].get[1]> != -1 {
-                #- narrate "Adding neighbor <def[neighbor]>"
-                - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+               
+                # don't re-add old nodes that were merely rediscovered
+                # with a new ID but same location as a node in the closed set
+                - if <def[closedset].as_string.contains[<def[neighbor].as_list.get_sub_items[2].get[1]>]> == false {
+                    #- narrate "Adding neighbor <def[neighbor]>"
+                    - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+                }
             }
         }
         
@@ -339,7 +367,9 @@ check_rail_placeable:
         # start at top block and go down a maximum
         # of two blocks from the origin loc
         - while <def[status].is[EQUALS].to[continue]> && <def[loc].y.sub[<def[inloc].y>].is[LESS].than[3]> {
-            #- narrate "This is iteration %loop_index%"
+            #- narrate "Inloc y <def[inloc]>"
+            #- showfake <m@green_wool> <def[inloc]> d:<d@1s>
+            #- wait 0.1s
 
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
@@ -350,7 +380,6 @@ check_rail_placeable:
                 
                     # Block is solid and non-transparent, check if air above
                     - if <def[inloc].above.material> == <m@air> {
-                    
                         # Rail is placeable!
                         #- narrate "solid, non-transparent, space above, ACCEPT"
                         - define status abort
@@ -435,5 +464,9 @@ min_f:
         }
         
         
-        #- narrate "F_MIN was <def[min_f]>, node was <def[min_node]>"
+        #- narrate "node was <def[min_node]>"
+        #- define first <def[min_node].as_list.get_sub_items[3].get[1]>
+        #- define second <def[min_node].as_list.get_sub_items[4].get[1]>
+        #- narrate "H was <def[first].add[<def[second]>]>"
+
         - determine <def[min_node].as_list>
