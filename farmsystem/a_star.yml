@@ -98,12 +98,12 @@ a_star:
             
             # DEBUG output, show open set as red wool
             - foreach <def[openset]> {
-                - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]>
+                - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]> d:<d@30s>
             }
 
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
-                - showfake <m@blue_wool> <def[value].as_list.get_sub_items[2].get[1]>
+                - showfake <m@blue_wool> <def[value].as_list.get_sub_items[2].get[1]> d:<d@30s>
             }
 
             # get valid neighbors of the current node
@@ -153,11 +153,22 @@ a_star:
                         
                     # ... update the neighbor node's
                     # g/f-value and came_from node
+                    - define goal_loc <def[goal].location>
+                    
                     - define new_id <def[value].as_list.get_sub_items[1].get[1]>
                     - define new_loc <def[value].as_list.get_sub_items[2].get[1]>
                     - define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[2].get[1]>]>
                     - define new_g_score <def[tentative_g_score]>
-                    - define new_f_score <def[value].as_list.get_sub_items[3].get[1].add[<def[new_distance]>]>
+                    
+                    # old heuristic was the straight line distance
+                    #- define new_f_score <def[value].as_list.get_sub_items[3].get[1].add[<def[new_distance]>]>
+                    
+                    # heuristic is the manhattan distance
+                    - define f_x <def[new_loc].x.sub[<def[goal_loc].x>].abs>
+                    - define f_y <def[new_loc].y.sub[<def[goal_loc].y>].abs>
+                    - define f_z <def[new_loc].z.sub[<def[goal_loc].z>].abs>
+                    - define new_f_score <def[f_x].add[<def[f_y].add[<def[y_z]>]>]>
+                    
                     - define new_came_from <def[current].get_sub_items[1].get[1]>
 
                     #- narrate "NEW_DISTANCE is <def[new_distance]>"
