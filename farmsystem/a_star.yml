@@ -78,15 +78,6 @@ a_star:
             - define current <proc[min_f].context[<def[openset].escaped>]>
             #- narrate "current was <def[current]>"
             
-            # if the goal was reached, output the path
-            # as a list of locations
-            - if <def[current].get_sub_items[1].get[1]> == goal {
-                # add goal to closed set
-                - define closedset <def[closedset].include[<def[current]>]>                
-
-                - determine <proc[reconstruct_path].context[<def[closedset].escaped>|<def[goal].escaped>]>
-            }
-            
             # remove current node from the open set ...
             - define openset <def[openset].exclude[<def[current]>]>
             #- narrate "openset was <def[openset].size>"
@@ -95,12 +86,20 @@ a_star:
             - define closedset <def[closedset].include[<def[current]>]>
             #- narrate "closedset was <def[closedset].size>"
             
+            # if the goal was reached, output the path
+            # as a list of locations
+            - if <def[current].get_sub_items[1].get[1]> == goal {
+                # current/goal node was added to closed set, g and f scores
+                # don't matter anymore once we're here          
+                - determine <proc[reconstruct_path].context[<def[closedset].escaped>|<def[goal].escaped>]>
+            }
+            
             # DEBUG output, show open set as red wool
             - foreach <def[openset]> {
                 - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]>
             }
 
-            - wait 0.5s
+            - wait 0.3s
 
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
@@ -200,6 +199,7 @@ reconstruct_path:
         # path from start to goal
         - define total_path %current%
         
+        - narrate "SIZE <def[closedset].filter[starts_with[<def[current].as_list.get_sub_items[1].get[1]>]].size>"
         # while current node is in the the closed set ...
         - while <def[closedset].filter[starts_with[<def[current].as_list.get_sub_items[1].get[1]>]].size.is[MORE].than[0]> {
             
