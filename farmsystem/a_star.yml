@@ -21,7 +21,12 @@ train:
             - narrate "Es konnte kein gueltiger Pfad gefunden werden!"
         } else {
             #- narrate "Path is <def[path]>"
-            - narrate "PFAD GEFUNDEN!"
+            - narrate "PFAD GEFUNDEN<&co> Laenge war <def[path].size>!"
+
+            - foreach <def[path]> {
+                - showfake <m@yellow_wool> <def[value].as_list.get_sub_items[2].get[1]> d:<d@10s>
+                #- modifyblock <def[value].as_list.get_sub_items[2].get[1].above> <m@rails> 
+            }
         }
 
 
@@ -34,15 +39,11 @@ train:
 # The IDs are continuous integers, starting from 0 and going as high as need be. Start and goal
 # nodes have string IDs so one doesn't run into issues when dealing with very long
 # paths that would exceed a static goal integer id.
-# >>>1363,69,25,world
 a_star:
     type: procedure
     definitions: start|goal
     speed: 1t
     script:
-
-        #- narrate "start <def[start]>"
-        #- narrate "goal <def[goal]>"
     
         # start counting node IDs at 0
         - define node_id_cnt 0
@@ -52,11 +53,13 @@ a_star:
         
         # The cost from the start along the best known path.
         - define g_score 0
+
+        # The previously chosen location.
+        - define prevloc null
         
         # Estimated total cost from start to goal through
         # Heuristic function is the straight Euclidean distance.
         - define f_score <def[g_score].add[<def[start].get_sub_items[2].get[1].distance[<def[goal].get_sub_items[2].get[1]>]>]>
-        - narrate "f_score <def[f_score]>"
 
         # id/loc/g/f/came_from_id
         # Update g and f scores of the start node.
@@ -70,28 +73,28 @@ a_star:
         # Nodes that already have been evaluated.
         - define closedset <li@>
         
-        
         # Continue algorithm as long as there nodes to expand
         # in the open set
         - while <def[openset].is_empty.is[EQUALS].to[false]> {
         
             # get node with lowest f value
             - define current <proc[min_f].context[<def[openset].escaped>]>
-            #- narrate "current was <def[current]>"
+            
+            #- showfake <m@green_wool> <def[current].as_list.get_sub_items[2].get[1]> <d@1s>
+            #- narrate "ID<&co> <def[current].as_list.get_sub_items[1].get[1]>, PARENT<&co> <def[current].as_list.get_sub_items[5].get[1]>"
+            #- wait 1s
             
             # remove current node from the open set ...
-            #- narrate "openset BEFORE was <def[openset].size>"
-            - define openset <def[openset].exclude[<def[current]>]>
-            - narrate "closedset size was <def[closedset].size>"
+            - define remove_index <def[openset].find_all_partial[<def[current].get_sub_items[2].get[1]>]>
+            - define openset <def[openset].remove[<def[remove_index]>]>
             
             # ... and add it to the closed set
             - define closedset <def[closedset].include[<def[current]>]>
-            #- narrate "closedset was <def[closedset]>"
             
             # if the goal was reached, output the path
             # as a list of locations
             - if <def[current].get_sub_items[1].get[1]> == goal {
-                # current/goal node was added to closed set, g and f scores
+                # current/goal node was added to closed set, but g and f scores
                 # don't matter anymore once we're here          
                 - determine <proc[reconstruct_path].context[<def[closedset].as_list.escaped>|<def[goal].as_list.escaped>]>
             }
@@ -101,60 +104,80 @@ a_star:
                 - showfake <m@red_wool> <def[value].as_list.get_sub_items[2].get[1]> d:<d@30s>
             }
 
+            #- wait 0.05s
+
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
                 - showfake <m@blue_wool> <def[value].as_list.get_sub_items[2].get[1]> d:<d@30s>
             }
 
             # get valid neighbors of the current node
-            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[g_score]>|<def[node_id_cnt]>|<def[goal].escaped>|<def[closedset].escaped>]>
-            #- narrate "NEIS was <def[neighbor_nodes]>"
+            - define neighbor_nodes <proc[find_neighbors].context[<def[current].escaped>|<def[g_score]>|<def[node_id_cnt]>|<def[goal].escaped>|<def[closedset].escaped>|<def[prevloc]>]>
 
-            # update the id count by adding the number of actually returned neighbors
-            # to the initial value
-            - define node_id_cnt <def[node_id_cnt].add[<def[neighbor_nodes].size>]>
+            # save chosen neighbor's location as new previous location
+            - define prevloc <def[current].get_sub_items[2].get[1]>
+
+            # update id count by maximum amount of nodes that
+            # could have been valid (4 in this case)
+            #
+            # TODO: Make this dynamic for other A* uses by shifting validation of
+            # the neighbors to here so the amount of found neighbors can be determined
+            # and used as an addition value
+            - define node_id_cnt <def[node_id_cnt].add[4]>
             
             # Step through all neighbor nodes of the current node
             - foreach <def[neighbor_nodes]> {
-            
-                #- narrate "value was <def[value]>"
 
-                # search neighbor using their id
-                - define neighbor_id <def[value].as_list.get_sub_items[1].get[1]>
-                #- narrate "neighbor_id was <def[neighbor_id]>"
-
-                - define neighbor_node <def[closedset].filter[starts_with[<def[neighbor_id]>]]>
-                #- narrate "neighbor_node was <def[neighbor_node]>"
-                
-                # then, using the (potentially) found node, try to get
-                # its position in the closed set
-                - define neighbor_index_closed <def[closedset].find[<def[neighbor_node]>]>
-                
-                # if the neighbor has been evaluated before
-                - if <def[neighbor_index_closed]> != -1 {
-                    # do nothing and continue the loop
-                    # with the next neighbor node
-                    - foreach next
-                }
-                
-                # calculate a preliminary g value for the neighbor node
+                # calculate a preliminary g value for the current neighbor
+                # the movement cost is the distance (currently 1 in each case -- CHECK THIS FOR GOING UP/DOWN)
                 - define distance <def[current].as_list.get_sub_items[2].get[1].distance[<def[value].as_list.get_sub_items[2].get[1]>]>
                 - define tentative_g_score <def[current].as_list.get_sub_items[3].get[1].add[<def[distance]>]>
-                    
-                # check if neighbor is not in the open set
-                - define neighbor_node_open <def[openset].filter[starts_with[<def[neighbor_id]>]]>
-                - define neighbor_index_open <def[openset].find[<def[neighbor_node_open]>]>
-                    
-                #- narrate "openset was <def[openset]>"
 
-                # if neighbor is not in open set or tentative g score is smaller than
-                # the real g score of the neighbor ...
-                - if <def[neighbor_index_open].is[EQUALS].to[-1]> || <def[tentative_g_score].is[LESS].than[<def[value].as_list.get_sub_items[3].get[1]>]> {
-                        
+                # use neighbor location to check if it is
+                # already in the closed/open set
+                - define neighbor_loc <def[value].as_list.get_sub_items[2].get[1]>
+                - define neighbor_in_open <def[openset].find_all_partial[<def[neighbor_loc]>].is[!EQUALS].to[<li@>]>
+                - define neighbor_in_closed <def[closedset].find_all_partial[<def[neighbor_loc]>].is[!EQUALS].to[<li@>]>
+
+                # if neighbor was already in the open set ...
+                - if <def[neighbor_in_open]> {
+                
+                    # fetch index and then the neighbor's g value
+                    - define neighbor_open_index <def[openset].find_all_partial[<def[neighbor_loc]>]>
+                    - define neighbor_g <def[openset].get[<def[neighbor_open_index]>].as_list.sub_items_get[3].get[1]>
+
+                    # remove neighbor from open set if new path is better
+                    # (should only happen when using non-admissable heuristic function)
+                    - if <def[tentative_g_score]> < <def[neighbor_g]> {
+                        - narrate "IN OPEN AND LESS"
+                        - define openset <def[openset].remove[<def[neighbor_open_index]>]>
+                    }
+                }
+
+                # if neighbor was already in the closed set
+                # and there has been evaluated already ...
+                - if <def[neighbor_in_closed]> {
+                    
+                    # fetch index and then the neighbor node's g value
+                    - define neighbor_closed_index <def[closedset].find_all_partial[<def[neighbor_loc]>]>
+                    - define neighbor_g <def[closedset].get[<def[neighbor_closed_index]>].as_list.sub_items_get[3].get[1]>
+
+                    # if the cost is less than the g value of the neighbor
+                    # remove it from the closed set
+                    - if <def[tentative_g_score]> < <def[neighbor_g]> {
+                        - narrate "IN CLOSED AND LESS"
+                        - define closedset <def[closedset].remove[<def[neighbor_closed_index]>]>
+                    }
+                }
+
+                # if neighbor is not in the open set and not in the closed set either
+                #- if <def[neighbor_in_open]> == false || <def[tentative_g_score].is[LESS].than[<def[value].as_list.get_sub_items[3].get[1]>]> {
+                - if <def[neighbor_in_open]> == false && <def[neighbor_in_closed]> == false {
+
                     # ... update the neighbor node's
                     # g/f-value and came_from node
-                    - define goal_loc <def[goal].location>
-                    
+                    - define goal_loc <def[goal].get_sub_items[2].get[1]>
+       
                     - define new_id <def[value].as_list.get_sub_items[1].get[1]>
                     - define new_loc <def[value].as_list.get_sub_items[2].get[1]>
                     - define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[2].get[1]>]>
@@ -167,29 +190,22 @@ a_star:
                     - define f_x <def[new_loc].x.sub[<def[goal_loc].x>].abs>
                     - define f_y <def[new_loc].y.sub[<def[goal_loc].y>].abs>
                     - define f_z <def[new_loc].z.sub[<def[goal_loc].z>].abs>
-                    - define new_f_score <def[f_x].add[<def[f_y].add[<def[y_z]>]>]>
+                    - define new_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
                     
                     - define new_came_from <def[current].get_sub_items[1].get[1]>
-
-                    #- narrate "NEW_DISTANCE is <def[new_distance]>"
                         
                     - define new_neighbor %new_id%/%new_loc%/%new_g_score%/%new_f_score%/%new_came_from%
-                    #- narrate "G SECOND <def[new_g_score]>, F SECOND <def[new_f_score]>"
 
                     # replace old node with updated, new node
-                    - define neighbor_index <def[neighbor_nodes].find[<def[value]>]>
-                    - define neighbor_nodes <def[neighbor_nodes].exclude[<def[value]>]>
+                    - define neighbor_index <def[neighbor_nodes].find_all_partial[<def[value].get_sub_items[2].get[1]>]>
+                    - define neighbor_nodes <def[neighbor_nodes].remove[<def[neighbor_index]>]>
                     - define neighbor_nodes <def[neighbor_nodes].insert[<def[new_neighbor]>].at[<def[neighbor_index]>]>
                         
-                    # add updated neighbor to open set if
-                    # it is not yet in there
-                    - if <def[openset].find[<def[new_neighbor]>]> == -1 {
-                        - define openset <def[openset].include[<def[new_neighbor]>]>
-                    }
+                    # add updated neighbor to open set                    
+                    - define openset <def[openset].include[<def[new_neighbor]>]>
                 }
             }
-            
-            - wait 0.1s
+            #- wait 0.05s
         }
         
         # If we reach the end of the loop without
@@ -206,22 +222,24 @@ reconstruct_path:
     script:
         - define closedset <def[closedset].unescaped>
         - define current <def[current].unescaped>
-
-        #- narrate "CLOSEDSET was <def[closedset]>, CURRENT was <def[current]>"
         
         # path from start to goal
         - define total_path <li@>
         
         # while current node is in the the closed set ...
         - define parent_id <def[current].as_list.get_sub_items[1].get[1]>
-        #- narrate "PARENT_ID was <def[parent_id]>"
 
-        - while <def[closedset].filter[starts_with[<def[parent_id]>]].size.is[MORE].than[0]> {
-            
+        # while there is a parent to the current node
+        - while <def[parent_id].is[!EQUALS].to[null]> {
+        #- while <def[closedset].filter[starts_with[<def[parent_id]>]].is_empty.is[EQUALS].to[false]> {
+            - narrate "curid was <def[current].as_list.get_sub_items[1].get[1]>, parent was <def[current].as_list.get_sub_items[5].get[1]>"            
+
             # ... find previous node by its id saved in the came_from field
             - define current <def[closedset].filter[starts_with[<def[parent_id]>]].get[1]>
-            #- narrate "CURRENT was <def[current]>"
+            #- showfake <m@black_wool> <def[current].as_list.get_sub_items[2].get[1]>
+            #- wait 0.05s  
 
+            # and update the parent id by fetching the current node's parent id
             - define parent_id <def[current].as_list.get_sub_items[5].get[1]>
 
             # path begins with the last node, so insertions
@@ -229,11 +247,9 @@ reconstruct_path:
             # path from start to finish!
             - define total_path <def[total_path].insert[<def[current]>].at[0]>
         }
-        
-        # return full path
-        #- narrate "Full path is<&co> <def[total_path]>"
-        #- foreach <def[total_path]> {
-        #    - narrate "<def[value].as_list.get_sub_items[1].get[1]>"
+
+        #- foreach <def[closedset]> {
+        #    - log "<def[value].as_list.get_sub_items[1].get[1]> <def[value].as_list.get_sub_items[5].get[1]>" type:none file:logs/ids.txt
         #}
 
         - determine <def[total_path]>
@@ -245,18 +261,26 @@ reconstruct_path:
 # only be placed on blocks that have a maximum y difference of 1.
 find_neighbors:
     type: procedure
-    definitions: node|g_score|id_cnt|goal|closedset
+    definitions: node|g_score|id_cnt|goal|closedset|prevloc
     speed: 1t
     script:
-        #- narrate "FIND_NEI <def[node].unescaped> , <def[g_score]> , <def[id_cnt]> , <def[goal].unescaped>"
         - define node <def[node].unescaped>
         - define goal <def[goal].unescaped>
         - define closedset <def[closedset].unescaped>
         
+        #- narrate "PREVLOC <def[prevloc]>"
+
+        # If the current node is the start node, there is no previous
+        # node, so to find out whether we are ascending, descending or
+        # staying at the same height, the previous node is assumed to be the
+        # start node as well.
+        - if <def[node].get_sub_items[2].get[1]> == null {
+            - define prevloc <def[node].get_sub_items[2].get[1]>
+        }
+
         # center location whose neighbors shall
         # be found by this procedure
         - define loc <def[node].as_list.get_sub_items[2].get[1]>
-        #- narrate "origin was <def[loc]>"
 
         # output list of valid neighbors
         - define valid_neighbors <li@>
@@ -293,15 +317,13 @@ find_neighbors:
         
         # Neighboring blocks to be checked
         - define checklist <li@%n1%|%n2%|%n3%|%n4%>
-        #- narrate "checklist <def[checklist]>"
         
         - foreach <def[checklist]> {
         
-            #- narrate "checklist member was <def[value]>"
             - define goal_loc <def[goal].get_sub_items[2].get[1]>
         
             # add information to neighbor node
-            - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>]>
+            - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>|<def[prevloc]>]>
             - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[2].get[1]>]> 
             - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
 
@@ -312,22 +334,25 @@ find_neighbors:
             - define f_x <def[neighbor_loc].x.sub[<def[goal_loc].x>].abs>
             - define f_y <def[neighbor_loc].y.sub[<def[goal_loc].y>].abs>
             - define f_z <def[neighbor_loc].z.sub[<def[goal_loc].z>].abs>
-            - define neighbor_f_score <def[f_x].add[<def[f_y].add[<def[y_z]>]>]>
+            - define neighbor_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
             
             - define neighbor_parent <def[node].get_sub_items[1].get[1]>
 
             # if the goal was reached, mark it by using a special ID
-            #- narrate "<def[neighbor_loc]> VS <def[goal].as_list.get_sub_items[2].get[1]>"
+            # back up current id and continue counting since nodes might be found
+            # after the goal node is found and I think it's cleaner this way
             - define id_cnt_backup <def[id_cnt]>
+
             - if <def[neighbor_loc]> == <def[goal].as_list.get_sub_items[2].get[1]> {
-                - narrate "FOUND GOAL AS NEIGHBOR"
                 - define id_cnt goal
             }
 
-            #- narrate "G_FIRST <def[neighbor_g_score]>, F_FIRST <def[neighbor_f_score]>"
+            # define neighbor's attribute values
             - define neighbor %id_cnt%/%neighbor_loc%/%neighbor_g_score%/%neighbor_f_score%/%neighbor_parent%
+            
+            # reset id count and increment
             - define id_cnt <def[id_cnt_backup]>
-            - define id_cnt <def[id_cnt].add[1]> 
+            - define id_cnt <def[id_cnt].add[1]>
        
             # if there was a valid neighbor, add it to the output list
             # and calculate its g and f values
@@ -335,10 +360,9 @@ find_neighbors:
                
                 # don't re-add old nodes that were merely rediscovered
                 # with a new ID but same location as a node in the closed set
-                - if <def[closedset].as_string.contains[<def[neighbor].as_list.get_sub_items[2].get[1]>]> == false {
-                    #- narrate "Adding neighbor <def[neighbor]>"
-                    - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
-                }
+                #- if <def[closedset].as_string.contains[<def[neighbor].as_list.get_sub_items[2].get[1]>]> == false {
+                - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
+                #}
             }
         }
         
@@ -358,29 +382,31 @@ find_neighbors:
 # are air.
 check_rail_placeable:
     type: procedure
-    definitions: loc
+    definitions: loc|prevloc
     speed: 1t
     script:
         # loop ending condition
         - define status continue
-        #- narrate "status was <def[status]>"
         
         # retain origin location by using
         # a new variable
         - define inloc <def[loc]>
-        #- narrate "inloc was <def[inloc]>"
         
         # dummy output location for the case
         # that no block matches
         - define outloc -1
-        
 
         # start at top block and go down a maximum
         # of two blocks from the origin loc
-        - while <def[status].is[EQUALS].to[continue]> && <def[loc].y.sub[<def[inloc].y>].is[LESS].than[3]> {
-            #- narrate "Inloc y <def[inloc]>"
-            #- showfake <m@green_wool> <def[inloc]> d:<d@1s>
-            #- wait 0.1s
+        - while true {
+            #- wait 0.2s
+
+            # hack because while parser can't use two conditions yet Zz
+            - if <def[status]> != continue || <def[loc].y.sub[<def[inloc].y>]> >= 3 {
+                - while stop
+            }
+
+            #- showfake <m@green_wool> <def[inloc]> d:<d@0.5s>
 
             # The material of the block the rail should be placed on must
             # be solid (i.e. not water, air...)
@@ -391,8 +417,12 @@ check_rail_placeable:
                 
                     # Block is solid and non-transparent, check if air above
                     - if <def[inloc].above.material> == <m@air> {
+                        
+                        # determine if the rail is currently ascending, descending
+                        # or on the same height as on the previous block
+                        #- define asc <def[prevloc].y.sub[<def[inloc].y
+
                         # Rail is placeable!
-                        #- narrate "solid, non-transparent, space above, ACCEPT"
                         - define status abort
                         - define outloc <def[inloc]>
                         
@@ -401,7 +431,6 @@ check_rail_placeable:
                     } else {
                     
                         # this blocks all potential neighbors below, abort
-                        #- narrate "solid, non-transparent, no space above, ABORT"
                         - define status abort
                     }
                 
@@ -409,7 +438,6 @@ check_rail_placeable:
                 } else {
                     
                     # this blocks all potential neighbors below, abort
-                    #- narrate "solid, transparent, ABORT"
                     - define status abort
                 }
             
@@ -420,7 +448,6 @@ check_rail_placeable:
                 - if <def[inloc].material> == <m@air> {
                 
                     # continue with block below
-                    #- narrate "non-solid, air, CONTINUE LOWER"
                     - define status continue
                     
                     # location data
@@ -430,22 +457,18 @@ check_rail_placeable:
                     - define in_world <def[inloc].world.name>
 
                     - define inloc <l@%in_x%,%in_y%,%in_z%,%in_world%>
-                    #- narrate "inloc is now <def[inloc]>"
                 
                 # else, there's water or lava, which means that the
                 # block below is either solid or also water/lava
                 } else {
                 
                     # hence abort search
-                    #- narrate "non-solid, non-air, ABORT"
                     - define status abort
                 }
-            }
-            #- narrate "status was <def[status]> and diff was <def[loc].y.sub[<def[inloc].y>]>"    
+            }    
         }
         
-        # finally return the valid neighbor block or -1, if there was none
-        #- narrate "returning..."
+        # finally return the valid neighbor block or default value -1, if there was none
         - determine <def[outloc]>
         
 
@@ -458,7 +481,6 @@ min_f:
     speed: 1t
     script:
         - define openset <def[openset].unescaped]>
-        #- narrate "openset <def[openset]>"
 
         # set dummy value 
         - define min_f 999999
@@ -466,18 +488,12 @@ min_f:
         # iterate through all nodes in the open set
         # and find the one with the lowest f value.
         - foreach <def[openset]> {
-            # - narrate "F_NODE was <def[value]>"
             - define current_f <def[value].as_list.get_sub_items[4].get[1]>
-            - if  <def[current_f]> < <def[min_f]> {
+            - if <def[current_f]> < <def[min_f]> {
                 - define min_f <def[current_f]>
                 - define min_node <def[value]>
             }
         }
         
-        
-        #- narrate "node was <def[min_node]>"
-        #- define first <def[min_node].as_list.get_sub_items[3].get[1]>
-        #- define second <def[min_node].as_list.get_sub_items[4].get[1]>
-        #- narrate "H was <def[first].add[<def[second]>]>"
-
+        #- showfake <m@gray_wool> <def[min_node].as_list.get_sub_items[2].get[1]> d:<d@0.5s>
         - determine <def[min_node].as_list>
