@@ -65,6 +65,9 @@ a_star:
         # Update g and f scores of the start node.
         - define startloc <def[start].get_sub_items[2].get[1]>
         - define start <li@start/%startloc%/%g_score%/%f_score%/null>
+
+        # save goal location
+        - define goalloc <def[goal].get_sub_items[2].get[1]>
         
         # Nodes waiting to be evaluated. At first, only
         # the "start" node is added.
@@ -93,10 +96,10 @@ a_star:
             
             # if the goal was reached, output the path
             # as a list of locations
-            - if <def[current].get_sub_items[1].get[1]> == goal {
+            - if <def[current].get_sub_items[2].get[1]> == <def[goalloc]> {
                 # current/goal node was added to closed set, but g and f scores
-                # don't matter anymore once we're here          
-                - determine <proc[reconstruct_path].context[<def[closedset].as_list.escaped>|<def[goal].as_list.escaped>]>
+                # don't matter anymore once we're here
+                - determine <proc[reconstruct_path].context[<def[closedset].as_list.escaped>|<def[start].as_list.escaped>|<def[goal].as_list.escaped>]>
             }
             
             # DEBUG output, show open set as red wool
@@ -171,7 +174,6 @@ a_star:
                 }
 
                 # if neighbor is not in the open set and not in the closed set either
-                #- if <def[neighbor_in_open]> == false || <def[tentative_g_score].is[LESS].than[<def[value].as_list.get_sub_items[3].get[1]>]> {
                 - if <def[neighbor_in_open]> == false && <def[neighbor_in_closed]> == false {
 
                     # ... update the neighbor node's
@@ -192,8 +194,9 @@ a_star:
                     - define f_z <def[new_loc].z.sub[<def[goal_loc].z>].abs>
                     - define new_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
                     
-                    - define new_came_from <def[current].get_sub_items[1].get[1]>
-                        
+                    #- define new_came_from <def[current].get_sub_items[1].get[1]>
+                    - define new_came_from <def[current].get_sub_items[2].get[1]>                    
+   
                     - define new_neighbor %new_id%/%new_loc%/%new_g_score%/%new_f_score%/%new_came_from%
 
                     # replace old node with updated, new node
@@ -203,6 +206,12 @@ a_star:
                         
                     # add updated neighbor to open set                    
                     - define openset <def[openset].include[<def[new_neighbor]>]>
+
+                    #- define ploc <def[closedset].get[<def[closedset].find_all_partial[<def[current].as_list.get_sub_items[2].get[1]>]>].as_list.get_sub_items[2].get[1]>
+                    #- define cloc <def[value].as_list.get_sub_items[2].get[1]>
+                    #- showfake <m@black_wool> <def[ploc]> d:<d@1s>
+                    #- showfake <m@green_wool> <def[cloc]> d:<d@1s>
+                    #- wait 1s 
                 }
             }
             #- wait 0.05s
@@ -217,27 +226,26 @@ a_star:
 # has taken, using the "came_from" field in the nodes' definitions.
 reconstruct_path:
     type: procedure
-    definitions: closedset|current
+    definitions: closedset|start|current
     speed: 1t
     script:
         - define closedset <def[closedset].unescaped>
+        - define start <def[start].unescaped>
         - define current <def[current].unescaped>
         
         # path from start to goal
         - define total_path <li@>
         
         # while current node is in the the closed set ...
-        - define parent_id <def[current].as_list.get_sub_items[1].get[1]>
+        - define parent_id <def[current].as_list.get_sub_items[2].get[1]>
 
-        # while there is a parent to the current node
-        - while <def[parent_id].is[!EQUALS].to[null]> {
-        #- while <def[closedset].filter[starts_with[<def[parent_id]>]].is_empty.is[EQUALS].to[false]> {
-            - narrate "curid was <def[current].as_list.get_sub_items[1].get[1]>, parent was <def[current].as_list.get_sub_items[5].get[1]>"            
+        # while we haven't arrived at the start node
+        - while <def[parent_id].is[!EQUALS].to[<def[start].get_sub_items[2].get[1]>]> {
 
             # ... find previous node by its id saved in the came_from field
-            - define current <def[closedset].filter[starts_with[<def[parent_id]>]].get[1]>
+            - define current <def[closedset].get[<def[closedset].find_all_partial[<def[parent_id]>].get[1]>]>
             #- showfake <m@black_wool> <def[current].as_list.get_sub_items[2].get[1]>
-            #- wait 0.05s  
+            #- wait 0.05s
 
             # and update the parent id by fetching the current node's parent id
             - define parent_id <def[current].as_list.get_sub_items[5].get[1]>
@@ -253,7 +261,9 @@ reconstruct_path:
         #}
 
         - determine <def[total_path]>
-        
+
+
+
 # This helper script finds all valid neighbors of a passed node as
 # a list, which will contain a maximum of four nodes.
 # This means that potentially all non-diagonal blocks from y+1 to y-1
@@ -267,14 +277,12 @@ find_neighbors:
         - define node <def[node].unescaped>
         - define goal <def[goal].unescaped>
         - define closedset <def[closedset].unescaped>
-        
-        #- narrate "PREVLOC <def[prevloc]>"
 
         # If the current node is the start node, there is no previous
         # node, so to find out whether we are ascending, descending or
         # staying at the same height, the previous node is assumed to be the
         # start node as well.
-        - if <def[node].get_sub_items[2].get[1]> == null {
+        - if <def[node].get_sub_items[5].get[1]> == null {
             - define prevloc <def[node].get_sub_items[2].get[1]>
         }
 
@@ -336,7 +344,7 @@ find_neighbors:
             - define f_z <def[neighbor_loc].z.sub[<def[goal_loc].z>].abs>
             - define neighbor_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
             
-            - define neighbor_parent <def[node].get_sub_items[1].get[1]>
+            - define neighbor_parent <def[node].get_sub_items[2].get[1]>
 
             # if the goal was reached, mark it by using a special ID
             # back up current id and continue counting since nodes might be found
@@ -355,14 +363,9 @@ find_neighbors:
             - define id_cnt <def[id_cnt].add[1]>
        
             # if there was a valid neighbor, add it to the output list
-            # and calculate its g and f values
             - if <def[neighbor].as_list.get_sub_items[2].get[1]> != -1 {
-               
-                # don't re-add old nodes that were merely rediscovered
-                # with a new ID but same location as a node in the closed set
-                #- if <def[closedset].as_string.contains[<def[neighbor].as_list.get_sub_items[2].get[1]>]> == false {
+
                 - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
-                #}
             }
         }
         
