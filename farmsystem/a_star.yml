@@ -6,6 +6,24 @@ train:
     description: "Versucht, einen Zug zur aktuellen Position herbeizurufen."
     usage: /train
     script:
+
+        #- wait 5s
+
+        # check if A* is already running
+        # and stop this attempt to run the script if that is the case
+        - if <server.flag[astar_running]> {
+
+            - narrate "Der Spieler <server.flag[astar_whois]> sucht gerade. Versuche es spaeter noch einmal!"
+            - define astar_queue <queue>
+            - queue <def[astar_queue]> stop
+        }
+
+        # prevent others from running the script simultaneously
+        # since the computation is currently rather memory-hungry
+        # and record who is currently using the command
+        - flag server astar_running:true
+        - flag server astar_whois:<player.name>
+
         # hub position
         - define departure_loc <l@1363,68,25,world.block>
         
@@ -18,16 +36,19 @@ train:
         # if A* could find a proper path, output it,
         # else, give a error reply.
         - if <def[path]> == -1 {
+
             - narrate "Es konnte kein gueltiger Pfad gefunden werden!"
         } else {
-            #- narrate "Path is <def[path]>"
-            - narrate "PFAD GEFUNDEN<&co> Laenge war <def[path].size>!"
 
+            - narrate "PFAD GEFUNDEN<&co> Laenge war <def[path].size>!"
             - foreach <def[path]> {
-                - showfake <m@yellow_wool> <def[value].as_list.get_sub_items[1].get[1]> d:<d@10s>
-                #- modifyblock <def[value].as_list.get_sub_items[1].get[1].above> <m@rails> 
+
+                - showfake <m@yellow_wool> <def[value].as_list.get_sub_items[1].get[1]> to:<server.list_online_players> d:<d@10s> 
             }
         }
+
+        # allow access to this command again
+        - flag server astar_running:false
 
 
 # This script implements an A* algorithm for finding the shortest path between
@@ -70,8 +91,7 @@ a_star:
         - while <def[openset].is_empty.is[EQUALS].to[false]> {
         
             # get node with lowest f value
-            - define current <proc[min_f].context[<def[openset].escaped>]>
-            #- showfake <m@green_wool> <def[current].as_list.get_sub_items[1].get[1]> <d@1s> 
+            - define current <proc[min_f].context[<def[openset].escaped>]> 
            
             # remove current node from the open set ...
             - define remove_index <def[openset].find_all_partial[<def[current].get_sub_items[1].get[1]>]>
@@ -91,14 +111,14 @@ a_star:
             
             # DEBUG output, show open set as red wool
             - foreach <def[openset]> {
-                - showfake <m@red_wool> <def[value].as_list.get_sub_items[1].get[1]> d:<d@30s>
+                - showfake <m@red_wool> <def[value].as_list.get_sub_items[1].get[1]> to:<server.list_online_players> d:<d@30s>
             }
 
             #- wait 0.05s
 
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
-                - showfake <m@blue_wool> <def[value].as_list.get_sub_items[1].get[1]> d:<d@30s>
+                - showfake <m@blue_wool> <def[value].as_list.get_sub_items[1].get[1]> to:<server.list_online_players> d:<d@30s>
             }
 
             # get valid neighbors of the current node
@@ -160,10 +180,10 @@ a_star:
                     - define goal_loc <def[goal].get_sub_items[1].get[1]>
        
                     - define new_loc <def[value].as_list.get_sub_items[1].get[1]>
-                    - define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[1].get[1]>]>
                     - define new_g_score <def[tentative_g_score]>
                     
                     # old heuristic was the straight line distance
+                    #- define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[1].get[1]>]>
                     #- define new_f_score <def[value].as_list.get_sub_items[2].get[1].add[<def[new_distance]>]>
                     
                     # heuristic is the manhattan distance
@@ -185,7 +205,7 @@ a_star:
                     - define openset <def[openset].include[<def[new_neighbor]>]>
                 }
             }
-            #- wait 0.05s
+            - wait 0.05s
         }
         
         # If we reach the end of the loop without
@@ -300,7 +320,7 @@ find_neighbors:
         
             # add information to neighbor node
             - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>|<def[prevloc]>]>
-            - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[1].get[1]>]> 
+            - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[1].get[1]>]>
             - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
 
             # old heuristic was the straight line distance
