@@ -175,37 +175,39 @@ a_star:
                 # if neighbor is not in the open set and not in the closed set either
                 - if <def[neighbor_in_open]> == false && <def[neighbor_in_closed]> == false {
 
-                    # update the neighbor node's
-                    # g/f-value and came_from node
+                    # define goal node's location for ease of access
                     - define goal_loc <def[goal].get_sub_items[1].get[1]>
-       
+
+                    # set node location
+                    # (it's not actually a different one - just defining for uniformity below)
                     - define new_loc <def[value].as_list.get_sub_items[1].get[1]>
+
+                    # g(x) is the previously calculated cost so far
                     - define new_g_score <def[tentative_g_score]>
                     
-                    # old heuristic was the straight line distance
-                    #- define new_distance <def[new_loc].distance[<def[goal].as_list.get_sub_items[1].get[1]>]>
-                    #- define new_f_score <def[value].as_list.get_sub_items[2].get[1].add[<def[new_distance]>]>
+                    # [old, manhattan looks better for rails] heuristic h(x) is the straight line distance
+                    #- define new_h_score <def[new_loc].distance[<def[goal_loc]>]>
                     
-                    # heuristic is the manhattan distance
+                    # heuristic h(x) is the manhattan distance
                     - define f_x <def[new_loc].x.sub[<def[goal_loc].x>].abs>
                     - define f_y <def[new_loc].y.sub[<def[goal_loc].y>].abs>
                     - define f_z <def[new_loc].z.sub[<def[goal_loc].z>].abs>
-                    - define new_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
+                    - define new_h_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
+
+                    # function value f(x) is g(x) + h(x) 
+                    - define new_f_score <def[new_g_score].add[<def[new_h_score]>]>
                     
+                    # set parent node
                     - define new_came_from <def[current].get_sub_items[1].get[1]>                    
    
+                    # set neighbor's updated attributes
                     - define new_neighbor %new_loc%/%new_g_score%/%new_f_score%/%new_came_from%
 
-                    # replace old node with updated, new node
-                    - define neighbor_index <def[neighbor_nodes].find_all_partial[<def[value].get_sub_items[1].get[1]>]>
-                    - define neighbor_nodes <def[neighbor_nodes].remove[<def[neighbor_index]>]>
-                    - define neighbor_nodes <def[neighbor_nodes].insert[<def[new_neighbor]>].at[<def[neighbor_index]>]>
-                        
                     # add updated neighbor to open set                    
                     - define openset <def[openset].include[<def[new_neighbor]>]>
                 }
             }
-            - wait 0.05s
+            #- wait 0.05s
         }
         
         # If we reach the end of the loop without
@@ -318,32 +320,23 @@ find_neighbors:
         
             - define goal_loc <def[goal].get_sub_items[1].get[1]>
         
-            # add information to neighbor node
+            # get valid neighbor location or -1 if there was none in that direction
             - define neighbor_loc <proc[check_rail_placeable].context[<def[value]>|<def[prevloc]>]>
-            - define neighbor_distance <def[neighbor_loc].distance[<def[node].get_sub_items[1].get[1]>]>
-            - define neighbor_g_score <def[g_score].add[%neighbor_distance%]>
 
-            # old heuristic was the straight line distance
-            #- define neighbor_f_score <def[neighbor_loc].distance[<def[goal].get_sub_items[1].get[1]>]>
+            # jump to next direction since no valid neighbor existed
+            - if <def[neighbor_loc]> == -1 {
+                - foreach next
+            }
 
-            # heuristic is the manhattan distance
-            - define f_x <def[neighbor_loc].x.sub[<def[goal_loc].x>].abs>
-            - define f_y <def[neighbor_loc].y.sub[<def[goal_loc].y>].abs>
-            - define f_z <def[neighbor_loc].z.sub[<def[goal_loc].z>].abs>
-            - define neighbor_f_score <def[f_x].add[<def[f_y].add[<def[f_z]>]>]>
-            
             # define came_from value as the parent node's location
             - define neighbor_parent <def[node].get_sub_items[1].get[1]>
 
             # define neighbor's attribute values
-            - define neighbor %neighbor_loc%/%neighbor_g_score%/%neighbor_f_score%/%neighbor_parent%
+            # start with dummy g/f values
+            - define neighbor %neighbor_loc%/0/0/%neighbor_parent%
        
-            # if the neighbor was valid neighbors, add it to the output list
-            # (actually, this should be at the top and checked instantly via foreach next. TODO)
-            - if <def[neighbor].as_list.get_sub_items[1].get[1]> != -1 {
-
-                - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
-            }
+            # Add valid neighbor to the output list
+            - define valid_neighbors <def[valid_neighbors].include[<def[neighbor]>]>
         }
         
         # return list of valid neighbors
