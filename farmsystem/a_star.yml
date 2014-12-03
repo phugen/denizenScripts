@@ -7,8 +7,6 @@ train:
     usage: /train
     script:
 
-        #- wait 5s
-
         # check if A* is already running
         # and stop this attempt to run the script if that is the case
         - if <server.flag[astar_running]> {
@@ -114,8 +112,6 @@ a_star:
                 - showfake <m@red_wool> <def[value].as_list.get_sub_items[1].get[1]> to:<server.list_online_players> d:<d@30s>
             }
 
-            #- wait 0.05s
-
             # DEBUG output, show closed set as blue wool
             - foreach <def[closedset]> {
                 - showfake <m@blue_wool> <def[value].as_list.get_sub_items[1].get[1]> to:<server.list_online_players> d:<d@30s>
@@ -135,8 +131,8 @@ a_star:
                 - define distance <def[current].as_list.get_sub_items[1].get[1].distance[<def[value].as_list.get_sub_items[1].get[1]>]>
                 - define tentative_g_score <def[current].as_list.get_sub_items[2].get[1].add[<def[distance]>]>
 
-                # use neighbor location to check if it is
-                # already in the closed/open set
+                # use neighbor node location to check if the node is
+                # already in the closed or open set
                 - define neighbor_loc <def[value].as_list.get_sub_items[1].get[1]>
                 - define neighbor_in_open <def[openset].find_all_partial[<def[neighbor_loc]>].is[!EQUALS].to[<li@>]>
                 - define neighbor_in_closed <def[closedset].find_all_partial[<def[neighbor_loc]>].is[!EQUALS].to[<li@>]>
@@ -345,12 +341,10 @@ find_neighbors:
 
 # This helper script checks if a rail can be placed on the passed block or the two
 # below it, and returns a valid block location if there was any.
-# Careful: The block BELOW the rail has to be compatible, so when the rail is put
-# into place, it has to be placed above the location since it is an entity!
 #
 # Strategy: For each direction, check the blocks
 # top-down. Because the maximum y difference is 1,
-# the first valid (= rail-compatible, i.e. not water)
+# the first valid (= rail-compatible, no water, chests etc.)
 # block denies access to the blocks below it, so these
 # do not have to be checked unless the blocks above them
 # are air.
@@ -359,94 +353,43 @@ check_rail_placeable:
     definitions: loc|prevloc
     speed: 1t
     script:
-        # loop ending condition
-        - define status continue
-        
-        # retain origin location by using
-        # a new variable
+        # save original position
         - define inloc <def[loc]>
-        
-        # dummy output location for the case
-        # that no block matches
+
+        # set output location to a dummy value
         - define outloc -1
 
-        # start at top block and go down a maximum
-        # of two blocks from the origin loc
-        - while true {
-            #- wait 0.2s
+        # start with the uppermost possible valid neighbor
+        # and go down a maximum of two blocks if the conditions
+        # are right
+        - while <def[loc].y.sub[<def[inloc].y>].is[LESS].than[3]> {
+            
+            # if the block is air, skip it and search below.      
+            - if <def[inloc].material> == <m@air> {
 
-            # hack because while parser can't use two conditions yet Zz
-            - if <def[status]> != continue || <def[loc].y.sub[<def[inloc].y>]> >= 3 {
-                - while stop
+                - define inloc <def[inloc].below>
+                - while next 
             }
 
-            #- showfake <m@green_wool> <def[inloc]> d:<d@0.5s>
-
-            # The material of the block the rail should be placed on must
-            # be solid (i.e. not water, air...)
-            - if <def[inloc].material.is_solid> == true {
-            
-                # Block is solid, but must not be transparent (chests, glass..)
-                - if <def[inloc].material.is_transparent> == false {
+            # if the block is solid, not an entity and has space above
+            - if <def[inloc].material.is_solid> && <def[inloc].material.is_transparent> == false && <def[inloc].above.material> == <m@air> {
                 
-                    # Block is solid and non-transparent, check if air above
-                    - if <def[inloc].above.material> == <m@air> {
-                        
-                        # determine if the rail is currently ascending, descending
-                        # or on the same height as on the previous block
-                        #- define asc <def[prevloc].y.sub[<def[inloc].y
-
-                        # Rail is placeable!
-                        - define status abort
-                        - define outloc <def[inloc]>
-                        
-                    # Block is solid and non-transparent,
-                    # but there is no free space above
-                    } else {
-                    
-                        # this blocks all potential neighbors below, abort
-                        - define status abort
-                    }
-                
-                # Block is solid, but transparent
-                } else {
-                    
-                    # this blocks all potential neighbors below, abort
-                    - define status abort
-                }
-            
-            # Block is not solid
+                # define current location as valid neighbor and stop the search
+                - define outloc <def[inloc]> 
+                - while stop
             } else {
                 
-                # if the block is air, the block below might be suitable
-                - if <def[inloc].material> == <m@air> {
-                
-                    # continue with block below
-                    - define status continue
-                    
-                    # location data
-                    - define in_x <def[inloc].x>
-                    - define in_y <def[inloc].y.sub[1]>
-                    - define in_z <def[inloc].z>
-                    - define in_world <def[inloc].world.name>
-
-                    - define inloc <l@%in_x%,%in_y%,%in_z%,%in_world%>
-                
-                # else, there's water or lava, which means that the
-                # block below is either solid or also water/lava
-                } else {
-                
-                    # hence abort search
-                    - define status abort
-                }
-            }    
+                # if neither is the case, stop the search since the block
+                # would prevent the one below it from being a suitable neighbor
+                - while stop
+            }
         }
-        
-        # finally return the valid neighbor block or default value -1, if there was none
+
+        # output the valid neighbor location or -1 if there was none.
         - determine <def[outloc]>
         
 
-        
+
 # This helper script finds the node with the lowest f value
 # in the open set and returns it.
 min_f:
