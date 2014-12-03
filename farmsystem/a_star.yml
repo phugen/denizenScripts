@@ -279,35 +279,21 @@ find_neighbors:
         # output list of valid neighbors
         - define valid_neighbors <li@>
         
-        # Start from top (y+1)
+        # Start from uppermost block (hence y+1 everywhere)
+        #
+        # Straight steps:
+
         # Direction: z-1
-        - define x <def[loc].x>
-        - define y <def[loc].y.add[1]>
-        - define z <def[loc].z.sub[1]>
-        - define world <def[loc].world.name>
-        
-        - define n1 <l@%x%,%y%,%z%,%world%>
+        - define n1 <def[loc].add[<l@0,1,-1>]>
         
         # Direction: z+1
-        - define x <def[loc].x>
-        - define y <def[loc].y.add[1]>
-        - define z <def[loc].z.add[1]>
-        
-        - define n2 <l@%x%,%y%,%z%,%world%>
+        - define n2 <def[loc].add[<l@0,1,1>]>
         
         # Direction: x-1
-        - define x <def[loc].x.sub[1]>
-        - define y <def[loc].y.add[1]>
-        - define z <def[loc].z>
-        
-        - define n3 <l@%x%,%y%,%z%,%world%>
+        - define n3 <def[loc].add[<l@-1,1,0>]>
         
         # Direction: x+1
-        - define x <def[loc].x.add[1]>
-        - define y <def[loc].y.add[1]>
-        - define z <def[loc].z>
-        
-        - define n4 <l@%x%,%y%,%z%,%world%>
+        - define n4 <def[loc].add[<l@1,1,0>]>
         
         # Neighboring blocks to be checked
         - define checklist <li@%n1%|%n2%|%n3%|%n4%>
